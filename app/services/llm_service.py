@@ -1,6 +1,8 @@
 import logging
 import time
 
+from app.config import Settings
+
 logger = logging.getLogger(__name__)
 
 
@@ -8,7 +10,7 @@ class RateLimitError(Exception):
     """Raised when an LLM provider responds with HTTP 429."""
 
 
-def groq_complete(prompt: str, settings) -> str:
+def groq_complete(prompt: str, settings: Settings) -> str:
     """Real Groq SDK call — replaced by the mock_groq_client fixture in tests."""
     from groq import Groq
 
@@ -20,7 +22,7 @@ def groq_complete(prompt: str, settings) -> str:
     return response.choices[0].message.content
 
 
-def gemini_complete(prompt: str, settings) -> str:
+def gemini_complete(prompt: str, settings: Settings) -> str:
     """Real Gemini SDK call — replaced by the mock_gemini_client fixture in tests."""
     import google.generativeai as genai
 
@@ -34,7 +36,7 @@ class LLMService:
     MAX_RETRIES = 3
     RATE_LIMIT_RETRIES = 3
 
-    def __init__(self, settings):
+    def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.primary_provider = settings.llm_provider
 

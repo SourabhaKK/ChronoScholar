@@ -45,8 +45,8 @@ def test_complete_fallback_requires_zero_network_calls(
 
 def test_provider_switches_to_gemini_via_env_variable(monkeypatch):
     monkeypatch.setenv("LLM_PROVIDER", "gemini")
-    from app.services.llm_service import LLMService
     from app.config import Settings
+    from app.services.llm_service import LLMService
     service = LLMService(settings=Settings())
     assert service.primary_provider == "gemini"
 
