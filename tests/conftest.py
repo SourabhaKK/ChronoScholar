@@ -6,7 +6,6 @@ import pytest
 
 from app.config import Settings
 
-
 # ─── Settings ────────────────────────────────────────────────────────────────
 
 @pytest.fixture
