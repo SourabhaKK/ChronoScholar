@@ -1,0 +1,19 @@
+class CogneeService:
+    def __init__(self, settings):
+        ...
+
+    @classmethod
+    async def create(cls, settings) -> "CogneeService":
+        ...
+
+    async def run_ingestion(self, papers, run_id, run_store):
+        ...
+
+    async def search(self, question, mode):
+        ...
+
+    def get_graph_html(self) -> str:
+        ...
+
+    def get_stats(self):
+        ...

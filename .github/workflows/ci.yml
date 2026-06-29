@@ -1,0 +1,14 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install uv && uv sync
+      - run: ruff check app/ tests/
+      - run: mypy app/ --ignore-missing-imports
+      - run: pytest tests/ -v -m "not benchmark" --cov=app --cov-fail-under=70
+      - run: docker build -t chronoscholar .

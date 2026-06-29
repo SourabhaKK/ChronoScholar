@@ -1,0 +1,13 @@
+class ArxivService:
+    def __init__(self, request_delay: float = 3.0):
+        ...
+
+    def fetch(self, query: str, max_results: int = 50, domain_tag: str | None = None):
+        ...
+
+    def fetch_by_id(self, paper_id: str):
+        ...
+
+    @staticmethod
+    def _parse_result(result):
+        ...

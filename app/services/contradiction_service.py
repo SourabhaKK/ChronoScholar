@@ -1,0 +1,9 @@
+class ContradictionService:
+    def __init__(self, llm_service):
+        ...
+
+    def detect(self, paper_a, paper_b):
+        ...
+
+    def detect_batch(self, papers):
+        ...
