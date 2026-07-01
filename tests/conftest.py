@@ -1,4 +1,5 @@
 # All shared fixtures live here exclusively — see TESTING_STRATEGY.md
+import json
 import time
 from datetime import datetime
 from unittest.mock import MagicMock
@@ -110,3 +111,96 @@ def arxiv_service(mock_settings: Settings) -> "ArxivService":  # type: ignore[na
     from app.services.arxiv_service import ArxivService
 
     return ArxivService(request_delay=mock_settings.arxiv_request_delay)
+
+
+@pytest.fixture
+def paper_zep() -> Paper:
+    return Paper(
+        paper_id="2501.13956",
+        title="Zep: A temporal knowledge graph architecture for agent memory",
+        abstract=(
+            "We introduce Graphiti, a temporal knowledge graph engine for agent memory. "
+            "Our system achieves 94.8% accuracy on the DMR benchmark and demonstrates "
+            "18.5% improvement on LongMemEval over vector-only approaches. "
+            "Graph-based memory shows significant advantages for temporal and multi-hop queries."
+        ),
+        published_date="2025-01",
+        authors=["Preston Rasmussen", "Pavlo Paliychuk"],
+        categories=["cs.AI"],
+        arxiv_url="https://arxiv.org/abs/2501.13956",
+    )
+
+
+@pytest.fixture
+def paper_cognee() -> Paper:
+    return Paper(
+        paper_id="2505.24478",
+        title="Optimizing the Interface Between Knowledge Graphs and LLMs for Complex Reasoning",
+        abstract=(
+            "We present Cognee, a graph-RAG system achieving 92.5% accuracy on multi-hop "
+            "queries compared to 60% for flat RAG baselines. Our hybrid graph-vector "
+            "architecture demonstrates substantial improvements for complex reasoning tasks."
+        ),
+        published_date="2025-05",
+        authors=["Vasilije Markovic", "Lazar Obradovic"],
+        categories=["cs.AI", "cs.IR"],
+        arxiv_url="https://arxiv.org/abs/2505.24478",
+    )
+
+
+@pytest.fixture
+def paper_unrelated() -> Paper:
+    return Paper(
+        paper_id="2312.00001",
+        title="A survey of transformer architectures",
+        abstract=(
+            "We survey transformer architectures from 2017 to 2023, "
+            "covering attention mechanisms, positional encodings, and "
+            "scaling laws for large language models."
+        ),
+        published_date="2023-12",
+        authors=["Test Author"],
+        categories=["cs.LG"],
+        arxiv_url="https://arxiv.org/abs/2312.00001",
+    )
+
+
+@pytest.fixture
+def five_paper_corpus(paper_mem0: Paper, paper_zep: Paper, paper_cognee: Paper, paper_unrelated: Paper) -> list[Paper]:
+    paper_extra = Paper(
+        paper_id="2502.00001",
+        title="Graph-based Agent Memory: Taxonomy and Applications",
+        abstract="We survey graph-based memory architectures for AI agents.",
+        published_date="2025-02",
+        authors=["Survey Author"],
+        categories=["cs.AI"],
+        arxiv_url="https://arxiv.org/abs/2502.00001",
+    )
+    return [paper_mem0, paper_zep, paper_cognee, paper_unrelated, paper_extra]
+
+
+# ─── LLM Service Mock ─────────────────────────────────────────────────────────
+
+@pytest.fixture
+def mock_llm_service() -> MagicMock:
+    service = MagicMock()
+    service.complete.return_value = json.dumps({
+        "label": "contradicts",
+        "confidence": 0.87,
+        "claim_a": "Graph memory adds minimal value over vector memory",
+        "claim_b": "Temporal graph achieves 18.5% improvement over vectors",
+        "explanation": (
+            "Paper A reports minimal gains from graph memory on LoCoMo. "
+            "Paper B demonstrates substantial improvements on LongMemEval."
+        ),
+    })
+    return service
+
+
+# ─── Contradiction Service ────────────────────────────────────────────────────
+
+@pytest.fixture
+def contradiction_service(mock_llm_service: MagicMock) -> "ContradictionService":  # type: ignore[name-defined]
+    from app.services.contradiction_service import ContradictionService
+
+    return ContradictionService(llm_service=mock_llm_service)
