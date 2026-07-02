@@ -39,6 +39,16 @@ def create_app() -> FastAPI:
             )
         if not hasattr(application.state, "run_store"):
             application.state.run_store = {"contradictions": []}
+        from pathlib import Path
+        import json as _json
+        predictions_path = Path("data/predictions.json")
+        if predictions_path.exists():
+            try:
+                cached = _json.loads(predictions_path.read_text())
+                application.state.run_store["contradictions"] = cached
+                logger.info("Loaded %d cached contradictions", len(cached))
+            except Exception as exc:
+                logger.warning("Could not load cached contradictions: %s", exc)
         logger.info("ChronoScholar startup complete")
         yield
         logger.info("ChronoScholar shutdown")
