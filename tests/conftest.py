@@ -16,7 +16,7 @@ from app.schemas.paper import Paper
 @pytest.fixture
 def mock_settings():
     return Settings(
-        llm_provider="groq",
+        app_llm_provider="groq",
         groq_api_key="test-groq-key",
         gemini_api_key="test-gemini-key",
         cognee_db_path="/tmp/test_cognee.db",

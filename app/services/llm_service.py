@@ -38,7 +38,7 @@ class LLMService:
 
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
-        self.primary_provider = settings.llm_provider
+        self.primary_provider = settings.app_llm_provider
 
     def complete(self, prompt: str, fallback: str = "") -> str:
         # Tier 1: Primary provider with exponential backoff

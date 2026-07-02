@@ -2,19 +2,19 @@ import pytest
 
 
 def test_config_loads_llm_provider_from_env(monkeypatch):
-    monkeypatch.setenv("LLM_PROVIDER", "groq")
+    monkeypatch.setenv("APP_LLM_PROVIDER", "groq")
     from app.config import Settings
-    assert Settings().llm_provider == "groq"
+    assert Settings().app_llm_provider == "groq"
 
 
 def test_config_loads_gemini_provider(monkeypatch):
-    monkeypatch.setenv("LLM_PROVIDER", "gemini")
+    monkeypatch.setenv("APP_LLM_PROVIDER", "gemini")
     from app.config import Settings
-    assert Settings().llm_provider == "gemini"
+    assert Settings().app_llm_provider == "gemini"
 
 
 def test_config_rejects_invalid_llm_provider(monkeypatch):
-    monkeypatch.setenv("LLM_PROVIDER", "openai")
+    monkeypatch.setenv("APP_LLM_PROVIDER", "openai")
     from app.config import Settings
     with pytest.raises(ValueError):
         Settings()

@@ -5,7 +5,9 @@ VALID_LLM_PROVIDERS = {"groq", "gemini", "ollama", "fallback"}
 
 
 class Settings(BaseSettings):
-    llm_provider: str = "groq"
+    # APP_LLM_PROVIDER controls ChronoScholar's own LLM client (groq/gemini/…).
+    # LLM_PROVIDER is reserved for Cognee's internal config (must be a Cognee LLMProvider value).
+    app_llm_provider: str = "groq"
     groq_model: str = "llama-3.1-8b-instant"
     gemini_model: str = "gemini-1.5-flash"
     groq_api_key: str = ""
@@ -21,12 +23,12 @@ class Settings(BaseSettings):
     contradiction_confidence_threshold: float = 0.7
     cognee_batch_size: int = 15
 
-    @field_validator("llm_provider")
+    @field_validator("app_llm_provider")
     @classmethod
     def validate_llm_provider(cls, value: str) -> str:
         if value not in VALID_LLM_PROVIDERS:
             raise ValueError(
-                f"llm_provider must be one of {sorted(VALID_LLM_PROVIDERS)}, got {value!r}"
+                f"app_llm_provider must be one of {sorted(VALID_LLM_PROVIDERS)}, got {value!r}"
             )
         return value
 
