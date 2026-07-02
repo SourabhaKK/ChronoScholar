@@ -1,0 +1,30 @@
+[
+  {
+    "pair_id": "pair-001",
+    "paper_id_a": "2504.19413",
+    "paper_id_b": "2501.13956",
+    "ground_truth_label": "contradicts",
+    "notes": "Mem0 reports minimal graph memory gains; Zep reports 18.5% improvement over vectors"
+  },
+  {
+    "pair_id": "pair-002",
+    "paper_id_a": "2501.13956",
+    "paper_id_b": "2505.24478",
+    "ground_truth_label": "supports",
+    "notes": "Zep and Cognee both demonstrate graph-RAG superiority over flat retrieval"
+  },
+  {
+    "pair_id": "pair-003",
+    "paper_id_a": "2504.19413",
+    "paper_id_b": "2505.24478",
+    "ground_truth_label": "contradicts",
+    "notes": "Mem0 minimises graph value; Cognee shows 92.5% vs 60% for flat RAG"
+  },
+  {
+    "pair_id": "pair-004",
+    "paper_id_a": "2505.24478",
+    "paper_id_b": "2312.00001",
+    "ground_truth_label": "unrelated",
+    "notes": "Graph-RAG paper vs transformer architecture survey — different domains"
+  }
+]
