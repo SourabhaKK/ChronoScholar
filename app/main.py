@@ -1,5 +1,87 @@
+import logging
+from contextlib import asynccontextmanager
+from datetime import datetime, timezone
+from typing import AsyncGenerator
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+
+from app.config import Settings
+from app.routers import contradictions, graph, ingest, query
+from app.services.cognee_service import CogneeService
+from app.services.contradiction_service import ContradictionService
+from app.services.llm_service import LLMService
+
+logger = logging.getLogger(__name__)
 
 
 def create_app() -> FastAPI:
-    ...
+    settings = Settings()
+
+    logging.basicConfig(
+        level=getattr(logging, settings.log_level.upper(), logging.INFO),
+        format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+    )
+
+    @asynccontextmanager
+    async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
+        # hasattr guards let test fixtures pre-inject mocks before startup
+        if not hasattr(application.state, "cognee_service"):
+            application.state.cognee_service = await CogneeService.create(settings)
+        if not hasattr(application.state, "contradiction_service"):
+            llm_service = LLMService(settings)
+            application.state.contradiction_service = ContradictionService(llm_service)
+        if not hasattr(application.state, "arxiv_service"):
+            from app.services.arxiv_service import ArxivService
+            application.state.arxiv_service = ArxivService(
+                request_delay=settings.arxiv_request_delay
+            )
+        if not hasattr(application.state, "run_store"):
+            application.state.run_store = {"contradictions": []}
+        logger.info("ChronoScholar startup complete")
+        yield
+        logger.info("ChronoScholar shutdown")
+
+    app = FastAPI(
+        title="ChronoScholar",
+        description="Temporally-aware research memory agent with Cognee knowledge graph",
+        version="1.0.0",
+        lifespan=lifespan,
+    )
+
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    @app.get("/health", tags=["health"])
+    async def health() -> dict:
+        return {
+            "status": "ok",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+        }
+
+    @app.get("/ready", tags=["health"])
+    async def ready() -> dict:
+        cognee_svc: CogneeService = app.state.cognee_service
+        stats = cognee_svc.get_stats()
+        return {
+            "ready": cognee_svc.graph_loaded,
+            "graph_loaded": cognee_svc.graph_loaded,
+            **stats,
+        }
+
+    app.include_router(ingest.router)
+    app.include_router(query.router)
+    app.include_router(contradictions.router)
+    app.include_router(graph.router)
+
+    try:
+        app.mount("/", StaticFiles(directory="app/static", html=True), name="static")
+    except RuntimeError:
+        logger.warning("Static directory not found — UI not available")
+
+    return app

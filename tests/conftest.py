@@ -249,11 +249,12 @@ def cognee_service(mock_settings: Settings) -> "CogneeService":  # type: ignore[
 @pytest.fixture
 def mock_cognee_service() -> AsyncMock:
     service = AsyncMock()
-    service.get_stats.return_value = {
+    # get_stats is a sync method on the real service — override with MagicMock
+    service.get_stats = MagicMock(return_value={
         "paper_count": 5,
         "entity_count": 35,
         "edge_count": 89,
-    }
+    })
     service.graph_loaded = True
     return service
 
