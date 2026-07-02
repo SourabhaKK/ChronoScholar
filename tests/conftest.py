@@ -2,7 +2,7 @@
 import json
 import time
 from datetime import datetime
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -204,3 +204,39 @@ def contradiction_service(mock_llm_service: MagicMock) -> "ContradictionService"
     from app.services.contradiction_service import ContradictionService
 
     return ContradictionService(llm_service=mock_llm_service)
+
+
+# ─── Cognee Mocks ─────────────────────────────────────────────────────────────
+
+@pytest.fixture
+def mock_cognee_add(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
+    import cognee
+
+    mock = AsyncMock()
+    monkeypatch.setattr(cognee, "add", mock)
+    return mock
+
+
+@pytest.fixture
+def mock_cognee_cognify(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
+    import cognee
+
+    mock = AsyncMock()
+    monkeypatch.setattr(cognee, "cognify", mock)
+    return mock
+
+
+@pytest.fixture
+def mock_cognee_search(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
+    import cognee
+
+    mock = AsyncMock()
+    monkeypatch.setattr(cognee, "search", mock)
+    return mock
+
+
+@pytest.fixture
+def cognee_service(mock_settings: Settings) -> "CogneeService":  # type: ignore[name-defined]
+    from app.services.cognee_service import CogneeService
+
+    return CogneeService(settings=mock_settings)
