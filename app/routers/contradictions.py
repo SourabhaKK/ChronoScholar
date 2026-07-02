@@ -9,5 +9,5 @@ async def list_contradictions():
 
 
 @router.post("/detect")
-async def detect(body):
+async def detect(body=None):
     ...

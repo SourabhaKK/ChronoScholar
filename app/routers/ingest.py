@@ -1,10 +1,10 @@
-from fastapi import APIRouter, BackgroundTasks
+from fastapi import APIRouter
 
 router = APIRouter()
 
 
 @router.post("/ingest", status_code=202)
-async def ingest(body, background_tasks: BackgroundTasks):
+async def ingest(body=None):
     ...
 
 

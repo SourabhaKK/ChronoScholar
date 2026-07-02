@@ -1,12 +1,14 @@
 # All shared fixtures live here exclusively — see TESTING_STRATEGY.md
 import json
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from unittest.mock import AsyncMock, MagicMock
+from uuid import uuid4
 
 import pytest
 
 from app.config import Settings
+from app.schemas.contradiction import ContradictionPair
 from app.schemas.paper import Paper
 
 # ─── Settings ────────────────────────────────────────────────────────────────
@@ -240,3 +242,51 @@ def cognee_service(mock_settings: Settings) -> "CogneeService":  # type: ignore[
     from app.services.cognee_service import CogneeService
 
     return CogneeService(settings=mock_settings)
+
+
+# ─── API-level mocks ──────────────────────────────────────────────────────────
+
+@pytest.fixture
+def mock_cognee_service() -> AsyncMock:
+    service = AsyncMock()
+    service.get_stats.return_value = {
+        "paper_count": 5,
+        "entity_count": 35,
+        "edge_count": 89,
+    }
+    service.graph_loaded = True
+    return service
+
+
+@pytest.fixture
+def mock_contradiction_service() -> MagicMock:
+    service = MagicMock()
+    service.detect.return_value = ContradictionPair(
+        pair_id=str(uuid4()),
+        paper_id_a="2504.19413",
+        paper_id_b="2501.13956",
+        label="contradicts",
+        confidence=0.87,
+        claim_a="Graph memory adds minimal value over vector memory",
+        claim_b="Temporal graph achieves 18.5% improvement over vectors",
+        explanation=(
+            "Paper A minimises the value of graph memory. "
+            "Paper B demonstrates substantial improvements."
+        ),
+        detection_method="llm",
+        detected_at=datetime.now(timezone.utc).isoformat(),
+    )
+    return service
+
+
+@pytest.fixture
+def test_client(mock_cognee_service: AsyncMock, mock_contradiction_service: MagicMock):
+    from fastapi.testclient import TestClient
+    from app.main import create_app
+
+    app = create_app()
+    app.state.cognee_service = mock_cognee_service
+    app.state.contradiction_service = mock_contradiction_service
+    app.state.arxiv_service = MagicMock()
+    app.state.run_store = {"contradictions": []}
+    return TestClient(app, raise_server_exceptions=True)

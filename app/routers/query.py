@@ -4,5 +4,5 @@ router = APIRouter()
 
 
 @router.post("/query")
-async def query(body):
+async def query(body=None):
     ...
