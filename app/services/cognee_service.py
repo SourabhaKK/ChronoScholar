@@ -40,11 +40,8 @@ class CogneeService:
 
         for batch_idx in range(0, len(papers), batch_size):
             batch = papers[batch_idx : batch_idx + batch_size]
-            documents = [
-                {"text": f"{p.title}\n\n{p.abstract}", "metadata": p.model_dump()}
-                for p in batch
-            ]
-            await cognee.add(documents)
+            for p in batch:
+                await cognee.add(f"{p.title}\n\n{p.abstract}")
             await cognee.cognify()
 
             completed = (batch_idx // batch_size) + 1

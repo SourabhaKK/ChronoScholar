@@ -100,12 +100,12 @@ def mock_arxiv_result(paper_mem0: Paper) -> MagicMock:
 
 @pytest.fixture
 def mock_arxiv_search(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
-    """Patches arxiv.Search; returns the .results mock so tests can set return_value."""
+    """Patches arxiv.Client.results at class level; return_value controls what results() yields."""
     import arxiv
 
-    mock_search_cls = MagicMock()
-    monkeypatch.setattr(arxiv, "Search", mock_search_cls)
-    return mock_search_cls.return_value.results
+    mock_results = MagicMock()
+    monkeypatch.setattr(arxiv.Client, "results", mock_results)
+    return mock_results
 
 
 @pytest.fixture

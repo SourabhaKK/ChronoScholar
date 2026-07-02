@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 class ArxivService:
     def __init__(self, request_delay: float = 3.0) -> None:
         self.request_delay = request_delay
+        # arxiv 4.x removed Search.results() — use Client().results(search)
+        self._client = arxiv.Client()
 
     def fetch(
         self,
@@ -26,7 +28,7 @@ class ArxivService:
             sort_by=arxiv.SortCriterion.Relevance,
         )
         papers: list[Paper] = []
-        for result in search.results():
+        for result in self._client.results(search):
             papers.append(self._parse_result(result))
             time.sleep(self.request_delay)
             if len(papers) >= max_results:
@@ -35,7 +37,7 @@ class ArxivService:
 
     def fetch_by_id(self, paper_id: str) -> Paper | None:
         search = arxiv.Search(id_list=[paper_id])
-        results = list(search.results())
+        results = list(self._client.results(search))
         if not results:
             return None
         return self._parse_result(results[0])
