@@ -14,15 +14,12 @@ class CogneeService:
     @classmethod
     async def create(cls, settings: Settings) -> "CogneeService":
         instance = cls(settings)
+        # Cognee 1.2.2 reads LLM_MODEL, LLM_API_KEY, EMBEDDING_* from env directly.
+        # set_llm_config() with a "provider" key is rejected in 1.2.x — skip it.
         try:
-            import cognee
-
-            await cognee.config.set_llm_config({
-                "provider": settings.llm_provider,
-                "api_key": settings.groq_api_key,
-            })
-        except Exception as exc:
-            logger.warning("Cognee config skipped (may be offline): %s", exc)
+            import cognee  # noqa: F401 — import triggers env-based config load
+        except ImportError as exc:
+            logger.warning("Cognee import failed: %s", exc)
         return instance
 
     async def run_ingestion(
