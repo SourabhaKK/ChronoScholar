@@ -1,6 +1,6 @@
 import json
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from itertools import combinations
 from uuid import uuid4
 
@@ -14,14 +14,21 @@ logger = logging.getLogger(__name__)
 
 def parse_llm_response(response: str, paper_a: Paper, paper_b: Paper) -> ContradictionPair:
     try:
-        clean = response.strip().strip("```json").strip("```").strip()
+        clean = response.strip()
+        if clean.startswith("```json"):
+            clean = clean[7:]
+        elif clean.startswith("```"):
+            clean = clean[3:]
+        if clean.endswith("```"):
+            clean = clean[:-3]
+        clean = clean.strip()
         data = json.loads(clean)
         return ContradictionPair(
             pair_id=str(uuid4()),
             paper_id_a=paper_a.paper_id,
             paper_id_b=paper_b.paper_id,
             detection_method="llm",
-            detected_at=datetime.now(timezone.utc).isoformat(),
+            detected_at=datetime.now(UTC).isoformat(),
             **data,
         )
     except (json.JSONDecodeError, KeyError, ValueError, TypeError) as exc:
@@ -31,7 +38,7 @@ def parse_llm_response(response: str, paper_a: Paper, paper_b: Paper) -> Contrad
             paper_id_a=paper_a.paper_id,
             paper_id_b=paper_b.paper_id,
             detection_method="fallback",
-            detected_at=datetime.now(timezone.utc).isoformat(),
+            detected_at=datetime.now(UTC).isoformat(),
             **CONTRADICTION_FALLBACK,
         )
 
@@ -63,7 +70,7 @@ class ContradictionService:
                 paper_id_a=paper_a.paper_id,
                 paper_id_b=paper_b.paper_id,
                 detection_method="fallback",
-                detected_at=datetime.now(timezone.utc).isoformat(),
+                detected_at=datetime.now(UTC).isoformat(),
                 **CONTRADICTION_FALLBACK,
             )
 

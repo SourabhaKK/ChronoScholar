@@ -1,7 +1,7 @@
 import logging
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
-from typing import AsyncGenerator
+from datetime import UTC, datetime
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -39,8 +39,8 @@ def create_app() -> FastAPI:
             )
         if not hasattr(application.state, "run_store"):
             application.state.run_store = {"contradictions": []}
-        from pathlib import Path
         import json as _json
+        from pathlib import Path
         predictions_path = Path("data/predictions.json")
         if predictions_path.exists():
             try:
@@ -71,7 +71,7 @@ def create_app() -> FastAPI:
     async def health() -> dict:
         return {
             "status": "ok",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     @app.get("/ready", tags=["health"])

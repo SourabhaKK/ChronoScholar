@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -28,7 +28,7 @@ async def ingest(
         "papers_fetched": 0,
         "papers_total": body.max_papers,
         "message": "Fetching papers from arXiv...",
-        "started_at": datetime.now(timezone.utc).isoformat(),
+        "started_at": datetime.now(UTC).isoformat(),
         "completed_at": None,
     }
     background_tasks.add_task(
@@ -59,14 +59,14 @@ async def _run_ingestion_task(
             "status": "complete",
             "progress_percent": 100,
             "message": "Ingestion complete.",
-            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "completed_at": datetime.now(UTC).isoformat(),
         })
     except Exception as exc:
         logger.error("Ingestion task failed for run %s: %s", run_id, exc)
         run_store[run_id].update({
             "status": "failed",
             "message": str(exc),
-            "completed_at": datetime.now(timezone.utc).isoformat(),
+            "completed_at": datetime.now(UTC).isoformat(),
         })
 
 

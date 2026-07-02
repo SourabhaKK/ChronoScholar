@@ -1,7 +1,7 @@
 # All shared fixtures live here exclusively — see TESTING_STRATEGY.md
 import json
 import time
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 from uuid import uuid4
 
@@ -109,7 +109,7 @@ def mock_arxiv_search(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 
 
 @pytest.fixture
-def arxiv_service(mock_settings: Settings) -> "ArxivService":  # type: ignore[name-defined]
+def arxiv_service(mock_settings: Settings):
     from app.services.arxiv_service import ArxivService
 
     return ArxivService(request_delay=mock_settings.arxiv_request_delay)
@@ -202,7 +202,7 @@ def mock_llm_service() -> MagicMock:
 # ─── Contradiction Service ────────────────────────────────────────────────────
 
 @pytest.fixture
-def contradiction_service(mock_llm_service: MagicMock) -> "ContradictionService":  # type: ignore[name-defined]
+def contradiction_service(mock_llm_service: MagicMock):
     from app.services.contradiction_service import ContradictionService
 
     return ContradictionService(llm_service=mock_llm_service)
@@ -238,7 +238,7 @@ def mock_cognee_search(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
 
 
 @pytest.fixture
-def cognee_service(mock_settings: Settings) -> "CogneeService":  # type: ignore[name-defined]
+def cognee_service(mock_settings: Settings):
     from app.services.cognee_service import CogneeService
 
     return CogneeService(settings=mock_settings)
@@ -275,7 +275,7 @@ def mock_contradiction_service() -> MagicMock:
             "Paper B demonstrates substantial improvements."
         ),
         detection_method="llm",
-        detected_at=datetime.now(timezone.utc).isoformat(),
+        detected_at=datetime.now(UTC).isoformat(),
     )
     return service
 
@@ -283,6 +283,7 @@ def mock_contradiction_service() -> MagicMock:
 @pytest.fixture
 def test_client(mock_cognee_service: AsyncMock, mock_contradiction_service: MagicMock):
     from fastapi.testclient import TestClient
+
     from app.main import create_app
 
     app = create_app()
