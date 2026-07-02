@@ -15,9 +15,9 @@ router = APIRouter()
 @router.post("/detect", response_model=ContradictionPair)
 async def detect(
     body: DetectRequest,
-    contradiction_svc: ContradictionService = Depends(get_contradiction_service),
-    arxiv_svc: ArxivService = Depends(get_arxiv_service),
-    run_store: dict = Depends(get_run_store),
+    contradiction_svc: ContradictionService = Depends(get_contradiction_service),  # noqa: B008
+    arxiv_svc: ArxivService = Depends(get_arxiv_service),  # noqa: B008
+    run_store: dict = Depends(get_run_store),  # noqa: B008
 ) -> ContradictionPair:
     paper_a = arxiv_svc.fetch_by_id(body.paper_id_a)
     paper_b = arxiv_svc.fetch_by_id(body.paper_id_b)
@@ -40,7 +40,7 @@ async def list_contradictions(
     label: Literal["contradicts", "supports", "extends", "unrelated"] | None = None,
     limit: int = Query(default=20, ge=1, le=100),
     offset: int = Query(default=0, ge=0),
-    run_store: dict = Depends(get_run_store),
+    run_store: dict = Depends(get_run_store),  # noqa: B008
 ) -> ContradictionResponse:
     all_pairs: list[ContradictionPair] = run_store.get("contradictions", [])
     filtered = [p for p in all_pairs if p.confidence >= min_confidence]

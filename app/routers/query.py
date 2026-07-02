@@ -15,7 +15,7 @@ router = APIRouter()
 @router.post("/query", response_model=QueryResponse)
 async def query(
     body: QueryRequest,
-    cognee_svc: CogneeService = Depends(get_cognee_service),
+    cognee_svc: CogneeService = Depends(get_cognee_service),  # noqa: B008
 ) -> QueryResponse:
     if not cognee_svc.graph_loaded:
         raise HTTPException(

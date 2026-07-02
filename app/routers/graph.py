@@ -12,7 +12,7 @@ router = APIRouter()
 
 @router.get("/graph/visualise", response_class=HTMLResponse)
 async def graph_visualise(
-    cognee_svc: CogneeService = Depends(get_cognee_service),
+    cognee_svc: CogneeService = Depends(get_cognee_service),  # noqa: B008
 ) -> HTMLResponse:
     if not cognee_svc.graph_loaded:
         raise HTTPException(status_code=503, detail="Knowledge graph not ready.")
@@ -22,6 +22,6 @@ async def graph_visualise(
 
 @router.get("/graph/stats")
 async def graph_stats(
-    cognee_svc: CogneeService = Depends(get_cognee_service),
+    cognee_svc: CogneeService = Depends(get_cognee_service),  # noqa: B008
 ) -> dict:
     return cognee_svc.get_stats()

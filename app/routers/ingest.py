@@ -17,8 +17,8 @@ router = APIRouter()
 async def ingest(
     body: PaperIngestRequest,
     background_tasks: BackgroundTasks,
-    cognee_svc: CogneeService = Depends(get_cognee_service),
-    run_store: dict = Depends(get_run_store),
+    cognee_svc: CogneeService = Depends(get_cognee_service),  # noqa: B008
+    run_store: dict = Depends(get_run_store),  # noqa: B008
 ) -> IngestResponse:
     run_id = str(uuid4())
     run_store[run_id] = {
@@ -73,7 +73,7 @@ async def _run_ingestion_task(
 @router.get("/ingest/status/{run_id}", response_model=IngestStatusResponse)
 async def ingest_status(
     run_id: str,
-    run_store: dict = Depends(get_run_store),
+    run_store: dict = Depends(get_run_store),  # noqa: B008
 ) -> IngestStatusResponse:
     if run_id not in run_store:
         raise HTTPException(status_code=404, detail="Run ID not found.")
