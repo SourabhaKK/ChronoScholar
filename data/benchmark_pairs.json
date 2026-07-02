@@ -4,28 +4,32 @@
     "paper_id_a": "2504.19413",
     "paper_id_b": "2501.13956",
     "ground_truth_label": "contradicts",
-    "notes": "Mem0 reports minimal graph memory gains; Zep reports 18.5% improvement over vectors"
+    "notes": "Mem0 reports minimal graph memory gains; Zep reports 18.5% improvement over vectors",
+    "contradiction_type": null
   },
   {
     "pair_id": "pair-002",
     "paper_id_a": "2501.13956",
     "paper_id_b": "2505.24478",
     "ground_truth_label": "supports",
-    "notes": "Zep and Cognee both demonstrate graph-RAG superiority over flat retrieval"
+    "notes": "Zep and Cognee both demonstrate graph-RAG superiority over flat retrieval",
+    "contradiction_type": null
   },
   {
     "pair_id": "pair-003",
     "paper_id_a": "2504.19413",
     "paper_id_b": "2505.24478",
     "ground_truth_label": "contradicts",
-    "notes": "Mem0 minimises graph value; Cognee shows 92.5% vs 60% for flat RAG"
+    "notes": "Mem0 minimises graph value; Cognee shows 92.5% vs 60% for flat RAG",
+    "contradiction_type": null
   },
   {
     "pair_id": "pair-004",
     "paper_id_a": "2505.24478",
     "paper_id_b": "2312.00001",
     "ground_truth_label": "unrelated",
-    "notes": "Graph-RAG paper vs transformer architecture survey — different domains"
+    "notes": "Graph-RAG paper vs transformer architecture survey \u00e2\u20ac\u201d different domains",
+    "contradiction_type": null
   },
   {
     "pair_id": "pair-005",
@@ -36,11 +40,11 @@
     "date_a": "2026-03",
     "date_b": "2025-01",
     "ground_truth_label": "extends",
-    "contradiction_type": "null",
+    "contradiction_type": null,
     "claim_a": "Existing graph memory systems lack formal belief revision correspondence",
     "claim_b": "Graphiti provides temporal versioning with bitemporal edges",
     "annotation_confidence": "medium",
-    "annotation_notes": "Kumiho extends Graphiti by adding formal belief revision semantics. Not a contradiction — Graphiti does not claim to have formal belief revision.",
+    "annotation_notes": "Kumiho extends Graphiti by adding formal belief revision semantics. Not a contradiction \u00e2\u20ac\u201d Graphiti does not claim to have formal belief revision.",
     "domain": "agent_memory"
   },
   {
@@ -68,7 +72,7 @@
     "date_a": "2026-01",
     "date_b": "2025-05",
     "ground_truth_label": "extends",
-    "contradiction_type": "null",
+    "contradiction_type": null,
     "claim_a": "Temporal belief propagation over hybrid graph-vector stores improves multi-hop accuracy beyond static graph-RAG",
     "claim_b": "Hybrid graph-vector architecture achieves 92.5% accuracy on multi-hop queries compared to 60% for flat RAG",
     "annotation_confidence": "medium",
@@ -100,7 +104,7 @@
     "date_a": "2026-03",
     "date_b": "2025-05",
     "ground_truth_label": "supports",
-    "contradiction_type": "null",
+    "contradiction_type": null,
     "claim_a": "Knowledge graph memory with ontology-grounded belief revision enables more accurate agent reasoning",
     "claim_b": "Hybrid graph-vector architecture achieves 92.5% accuracy on multi-hop queries compared to 60% for flat RAG",
     "annotation_confidence": "high",
@@ -116,7 +120,7 @@
     "date_a": "2026-01",
     "date_b": "2025-01",
     "ground_truth_label": "supports",
-    "contradiction_type": "null",
+    "contradiction_type": null,
     "claim_a": "Temporal edge weighting in knowledge graphs enables agents to distinguish current from outdated beliefs",
     "claim_b": "Graphiti achieves 94.8% accuracy on DMR benchmark using bitemporal edge representation",
     "annotation_confidence": "high",
