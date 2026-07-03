@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from itertools import combinations
 from uuid import uuid4
 
-from app.prompts import CONTRADICTION_FALLBACK, CONTRADICTION_USER_TEMPLATE
+from app.prompts import CONTRADICTION_FALLBACK, CONTRADICTION_SYSTEM, CONTRADICTION_USER_TEMPLATE
 from app.schemas.contradiction import ContradictionPair
 from app.schemas.paper import Paper
 from app.services.llm_service import LLMService
@@ -47,8 +47,12 @@ class ContradictionService:
     def __init__(self, llm_service: LLMService) -> None:
         self.llm_service = llm_service
 
-    def detect(self, paper_a: Paper, paper_b: Paper) -> ContradictionPair:
+    def detect(self, paper_a: Paper, paper_b: Paper, context: str = "") -> ContradictionPair:
         try:
+            context_block = (
+                f"\nKey claims extracted from full papers:\n{context}\n\n"
+                if context else "\n"
+            )
             prompt = CONTRADICTION_USER_TEMPLATE.substitute(
                 paper_id_a=paper_a.paper_id,
                 date_a=paper_a.published_date,
@@ -58,9 +62,12 @@ class ContradictionService:
                 date_b=paper_b.published_date,
                 title_b=paper_b.title,
                 abstract_b=paper_b.abstract,
+                context_block=context_block,
             )
             response = self.llm_service.complete(
-                prompt, fallback=json.dumps(CONTRADICTION_FALLBACK)
+                prompt,
+                fallback=json.dumps(CONTRADICTION_FALLBACK),
+                system=CONTRADICTION_SYSTEM,
             )
             return parse_llm_response(response, paper_a, paper_b)
         except Exception as exc:

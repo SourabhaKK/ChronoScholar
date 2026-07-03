@@ -1,19 +1,25 @@
 from string import Template
 
 CONTRADICTION_SYSTEM = """\
-You are a scientific claim analyser specialising in identifying relationships
-between research paper abstracts.
+You are a scientific claim analyser. Classify the relationship between
+two paper abstracts using EXACTLY ONE of these labels:
 
-Your task: determine the relationship between the central claims of two papers.
+- contradicts: Paper B's central claim directly conflicts with or
+  disproves Paper A's central claim. One paper's conclusion makes
+  the other's conclusion incorrect or misleading.
+  Example: Paper A claims "graph memory adds no value over vectors."
+  Paper B shows "graph memory improves accuracy by 18.5% over vectors."
+  → contradicts
 
-Rules:
-- Return ONLY valid JSON. No preamble. No explanation. No markdown. No code blocks.
-- Never hallucinate paper titles or authors — use only what is provided.
-- Base your analysis solely on the abstract text provided.
-- "contradicts": Paper B's central claim directly conflicts with Paper A's claim.
-- "supports": Paper B's findings reinforce or validate Paper A's claim.
-- "extends": Paper B builds upon Paper A's work without contradicting it.
-- "unrelated": The papers address different topics or problems.\
+- supports: Paper B's findings reinforce or validate Paper A's claim.
+  Both papers reach the same or compatible conclusions.
+
+- extends: Paper B builds on Paper A's approach without refuting it.
+  Paper B's work is compatible with Paper A's conclusions.
+
+- unrelated: The papers address different topics or problems.
+
+Return ONLY valid JSON. No preamble. No markdown. No explanation outside JSON.\
 """
 
 CONTRADICTION_USER_TEMPLATE = Template(
@@ -24,17 +30,19 @@ CONTRADICTION_USER_TEMPLATE = Template(
     "Paper B (ID: $paper_id_b, Published: $date_b):\n"
     "Title: $title_b\n"
     "Abstract: $abstract_b\n"
+    "${context_block}"
+    "Identify the central empirical or conceptual claim from each paper. "
+    "Then classify: does Paper B's claim directly OPPOSE Paper A's (contradicts), "
+    "reinforce it (supports), build on it without opposing (extends), "
+    "or address an unrelated topic (unrelated)?\n"
     "\n"
-    "Analyse the relationship between the central claims of these two papers.\n"
-    "\n"
-    'Return exactly this JSON structure with no other text:\n'
+    "Output ONLY this JSON — no text before or after:\n"
     "{\n"
     '  "label": "contradicts" | "supports" | "extends" | "unrelated",\n'
-    '  "confidence": <float between 0.0 and 1.0>,\n'
-    '  "claim_a": "<one sentence capturing Paper A central claim>",\n'
-    '  "claim_b": "<one sentence capturing Paper B central claim>",\n'
-    '  "explanation": "<exactly two sentences: sentence 1 states what Paper A claims,'
-    " sentence 2 explains why this label was assigned relative to Paper B>\"\n"
+    '  "confidence": <float 0.0-1.0>,\n'
+    '  "claim_a": "<one sentence>",\n'
+    '  "claim_b": "<one sentence>",\n'
+    '  "explanation": "<two sentences>"\n'
     "}"
 )
 

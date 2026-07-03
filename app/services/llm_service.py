@@ -10,24 +10,33 @@ class RateLimitError(Exception):
     """Raised when an LLM provider responds with HTTP 429."""
 
 
-def groq_complete(prompt: str, settings: Settings) -> str:
+def groq_complete(prompt: str, settings: Settings, system: str = "") -> str:
     """Real Groq SDK call — replaced by the mock_groq_client fixture in tests."""
     from groq import Groq
 
+    from groq.types.chat import ChatCompletionMessageParam
+
+    messages: list[ChatCompletionMessageParam] = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    messages.append({"role": "user", "content": prompt})
     client = Groq(api_key=settings.groq_api_key)
     response = client.chat.completions.create(
         model=settings.groq_model,
-        messages=[{"role": "user", "content": prompt}],
+        messages=messages,
     )
     return response.choices[0].message.content
 
 
-def gemini_complete(prompt: str, settings: Settings) -> str:
+def gemini_complete(prompt: str, settings: Settings, system: str = "") -> str:
     """Real Gemini SDK call — replaced by the mock_gemini_client fixture in tests."""
     import google.generativeai as genai
 
     genai.configure(api_key=settings.gemini_api_key)
-    model = genai.GenerativeModel(settings.gemini_model)
+    model = genai.GenerativeModel(
+        settings.gemini_model,
+        system_instruction=system if system else None,
+    )
     response = model.generate_content(prompt)
     return response.text
 
@@ -40,11 +49,11 @@ class LLMService:
         self.settings = settings
         self.primary_provider = settings.app_llm_provider
 
-    def complete(self, prompt: str, fallback: str = "") -> str:
+    def complete(self, prompt: str, fallback: str = "", system: str = "") -> str:
         # Tier 1: Primary provider with exponential backoff
         for attempt in range(self.MAX_RETRIES):
             try:
-                return self._call_primary(prompt)
+                return self._call_primary(prompt, system)
             except RateLimitError:
                 break  # Jump to Tier 2 immediately
             except (ConnectionError, TimeoutError) as exc:
@@ -66,7 +75,7 @@ class LLMService:
         # Tier 2: Fallback provider on rate limit
         for attempt in range(self.RATE_LIMIT_RETRIES):
             try:
-                return self._call_fallback(prompt)
+                return self._call_fallback(prompt, system)
             except RateLimitError:
                 delay = 5 * (2**attempt)
                 logger.warning("Fallback provider rate limited, waiting %ds", delay)
@@ -79,8 +88,8 @@ class LLMService:
         logger.warning("All LLM providers exhausted. Returning deterministic fallback.")
         return fallback
 
-    def _call_primary(self, prompt: str) -> str:
-        return groq_complete(prompt, self.settings)
+    def _call_primary(self, prompt: str, system: str = "") -> str:
+        return groq_complete(prompt, self.settings, system=system)
 
-    def _call_fallback(self, prompt: str) -> str:
-        return gemini_complete(prompt, self.settings)
+    def _call_fallback(self, prompt: str, system: str = "") -> str:
+        return gemini_complete(prompt, self.settings, system=system)

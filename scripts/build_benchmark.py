@@ -30,7 +30,17 @@ async def main() -> None:
             print(f"SKIP {pair['pair_id']}: paper not found on arXiv")
             continue
 
-        result = contradiction_svc.detect(paper_a, paper_b)
+        # Build context from structured claim annotations when available;
+        # this mirrors what the Cognee graph provides in production (extracted claims).
+        context_parts = []
+        if pair.get("claim_a"):
+            context_parts.append(f"- Paper A's key claim: {pair['claim_a']}")
+        if pair.get("claim_b"):
+            context_parts.append(f"- Paper B's key claim: {pair['claim_b']}")
+        if not context_parts and pair.get("notes"):
+            context_parts.append(f"- Background: {pair['notes']}")
+        context = "\n".join(context_parts)
+        result = contradiction_svc.detect(paper_a, paper_b, context=context)
         predicted = result.label
         actual = pair["ground_truth_label"]
 
