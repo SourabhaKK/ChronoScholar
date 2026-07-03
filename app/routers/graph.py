@@ -24,4 +24,4 @@ async def graph_visualise(
 async def graph_stats(
     cognee_svc: CogneeService = Depends(get_cognee_service),  # noqa: B008
 ) -> dict:
-    return cognee_svc.get_stats()
+    return await cognee_svc.get_stats()

@@ -77,7 +77,7 @@ def create_app() -> FastAPI:
     @app.get("/ready", tags=["health"])
     async def ready() -> dict:
         cognee_svc: CogneeService = app.state.cognee_service
-        stats = cognee_svc.get_stats()
+        stats = await cognee_svc.get_stats()
         return {
             "ready": cognee_svc.graph_loaded,
             "graph_loaded": cognee_svc.graph_loaded,

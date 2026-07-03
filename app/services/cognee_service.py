@@ -10,6 +10,7 @@ class CogneeService:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.graph_loaded: bool = False
+        self._paper_count: int = 0
 
     @classmethod
     async def create(cls, settings: Settings) -> "CogneeService":
@@ -43,6 +44,7 @@ class CogneeService:
             for p in batch:
                 await cognee.add(f"{p.title}\n\n{p.abstract}")
             await cognee.cognify()
+            self._paper_count += len(batch)
 
             completed = (batch_idx // batch_size) + 1
             progress = int((completed / total_batches) * 80)
@@ -76,12 +78,24 @@ class CogneeService:
             "latency_ms": 0,
         }
 
-    def get_stats(self) -> dict:
-        return {
-            "paper_count": 0,
-            "entity_count": 0,
-            "edge_count": 0,
-        }
+    async def get_stats(self) -> dict:
+        if not self.graph_loaded:
+            return {"paper_count": 0, "entity_count": 0, "edge_count": 0}
+        try:
+            from cognee.infrastructure.databases.graph import get_graph_engine
+
+            graph_engine = await get_graph_engine()
+            nodes, edges = await graph_engine.get_graph_data()
+            return {
+                "paper_count": self._paper_count,
+                "entity_count": len(nodes),
+                "edge_count": len(edges),
+                "node_types": {},
+                "edge_types": {},
+            }
+        except Exception as exc:
+            logger.warning("Could not get graph stats: %s", exc)
+            return {"paper_count": self._paper_count, "entity_count": 0, "edge_count": 0}
 
     async def get_graph_html(self) -> str:
         from pyvis.network import Network

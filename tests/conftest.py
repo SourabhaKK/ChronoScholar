@@ -249,8 +249,7 @@ def cognee_service(mock_settings: Settings):
 @pytest.fixture
 def mock_cognee_service() -> AsyncMock:
     service = AsyncMock()
-    # get_stats is a sync method on the real service — override with MagicMock
-    service.get_stats = MagicMock(return_value={
+    service.get_stats = AsyncMock(return_value={
         "paper_count": 5,
         "entity_count": 35,
         "edge_count": 89,

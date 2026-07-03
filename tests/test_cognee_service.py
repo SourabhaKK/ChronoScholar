@@ -46,8 +46,8 @@ async def test_search_calls_cognee_search_with_correct_search_type(
     assert mock_cognee_search.called
 
 
-def test_get_stats_returns_dict_with_required_keys(cognee_service) -> None:
-    stats = cognee_service.get_stats()
+async def test_get_stats_returns_dict_with_required_keys(cognee_service) -> None:
+    stats = await cognee_service.get_stats()
     assert "paper_count" in stats
     assert "entity_count" in stats
     assert "edge_count" in stats
