@@ -1,4 +1,5 @@
 import logging
+from pathlib import Path
 
 from app.config import Settings
 from app.schemas.paper import Paper
@@ -18,7 +19,16 @@ class CogneeService:
         # Cognee 1.2.2 reads LLM_MODEL, LLM_API_KEY, EMBEDDING_* from env directly.
         # set_llm_config() with a "provider" key is rejected in 1.2.x — skip it.
         try:
-            import cognee  # noqa: F401 — import triggers env-based config load
+            import cognee
+
+            # Force Cognee to use project-relative paths, not venv internals.
+            # data_root_directory / system_root_directory are sync in 1.2.2.
+            # Fall back to data/ when cognee_db_path is unset.
+            db_path = settings.cognee_db_path or "data/cognee.db"
+            data_path = Path(db_path).parent.absolute()
+            data_path.mkdir(parents=True, exist_ok=True)
+            cognee.config.data_root_directory(str(data_path))
+            cognee.config.system_root_directory(str(data_path / "cognee_system"))
         except ImportError as exc:
             logger.warning("Cognee import failed: %s", exc)
         return instance
