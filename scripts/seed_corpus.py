@@ -6,6 +6,9 @@ import json
 import time
 from pathlib import Path
 
+from dotenv import load_dotenv
+load_dotenv()
+
 
 async def main(limit: int | None = None) -> None:
     from app.config import Settings
