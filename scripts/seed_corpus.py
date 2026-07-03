@@ -28,7 +28,11 @@ async def main(limit: int | None = None) -> None:
     print(f"Fetching {len(paper_ids)} papers from arXiv...")
     papers = []
     for pid in paper_ids:
-        paper = arxiv_svc.fetch_by_id(pid)
+        try:
+            paper = arxiv_svc.fetch_by_id(pid)
+        except Exception as exc:
+            print(f"  SKIP {pid}: {exc}")
+            continue
         if paper:
             papers.append(paper)
             print(f"  Fetched: {pid} — {paper.title[:60]}")
