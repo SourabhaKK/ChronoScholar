@@ -73,12 +73,10 @@ class CogneeService:
         try:
             from cognee.api.v1.search import SearchType
 
-            _mode_map: dict[str, SearchType] = {
-                "GRAPH_COMPLETION": SearchType.GRAPH_COMPLETION,
-                "SEMANTIC": SearchType.SEMANTIC,
-            }
+            # Build map lazily from the enum itself so missing members never raise AttributeError.
+            _mode_map: dict[str, SearchType] = {m.name: m for m in SearchType}
             search_type: object = _mode_map.get(mode, SearchType.GRAPH_COMPLETION)
-        except (ImportError, AttributeError):
+        except ImportError:
             search_type = mode
 
         results = await cognee.search(question, query_type=search_type)
