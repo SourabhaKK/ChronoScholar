@@ -1,1 +1,645 @@
-<!-- placeholder: single-page UI (ingest + query + dashboard) -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChronoScholar</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #1a1a2e;
+      --surface: #16213e;
+      --surface2: #0f3460;
+      --accent: #e94560;
+      --text: #eaeaea;
+      --text-muted: #9ca3af;
+      --green: #06d6a0;
+      --red: #ef233c;
+      --blue: #4361ee;
+      --grey: #adb5bd;
+      --radius: 8px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+      padding: 1rem 2rem;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
+    header p { color: var(--text-muted); font-size: 0.85rem; }
+
+    main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 2rem; }
+
+    section {
+      background: var(--surface);
+      border-radius: var(--radius);
+      border: 1px solid rgba(255,255,255,0.07);
+      padding: 1.5rem;
+    }
+    section h2 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      padding-bottom: 0.6rem;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
+    }
+
+    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .form-group { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 160px; }
+    .form-group label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    input[type="text"], input[type="number"], textarea {
+      background: var(--surface2);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 80px; }
+
+    button {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      padding: 0.55rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+    button:hover { opacity: 0.85; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button.secondary {
+      background: var(--surface2);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: var(--text);
+    }
+
+    /* Progress */
+    .progress-wrap { margin-top: 1rem; display: none; }
+    .progress-bar-outer { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+    .progress-bar-inner { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; transition: width 0.4s; }
+    .progress-meta { display: flex; justify-content: space-between; margin-bottom: 0.35rem; }
+    .progress-msg { font-size: 0.82rem; color: var(--text-muted); }
+
+    /* Stat cards */
+    .stat-cards { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
+    .stat-card { background: var(--surface2); border-radius: var(--radius); padding: 0.75rem 1.25rem; flex: 1; min-width: 120px; text-align: center; }
+    .stat-card .val { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
+    .stat-card .lbl { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+
+    /* Banners */
+    .banner { padding: 0.65rem 1rem; border-radius: var(--radius); font-size: 0.85rem; margin-top: 0.75rem; display: none; }
+    .banner.error { background: rgba(239,35,60,0.15); border: 1px solid rgba(239,35,60,0.4); color: #ff6b7a; }
+    .banner.success { background: rgba(6,214,160,0.12); border: 1px solid rgba(6,214,160,0.35); color: var(--green); }
+
+    /* Contradiction table */
+    .table-controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    .table-controls label { font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
+    input[type="range"] { width: 130px; accent-color: var(--accent); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    thead tr { border-bottom: 1px solid rgba(255,255,255,0.1); }
+    th { color: var(--text-muted); font-weight: 600; text-align: left; padding: 0.5rem 0.75rem; font-size: 0.77rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    td { padding: 0.55rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
+    tbody tr.data-row { cursor: pointer; transition: background 0.15s; }
+    tbody tr.data-row:hover { background: rgba(255,255,255,0.04); }
+    tbody tr.data-row.selected { background: rgba(233,69,96,0.1); }
+
+    .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+    .badge-contradicts { background: rgba(239,35,60,0.2); color: #ef233c; }
+    .badge-supports { background: rgba(6,214,160,0.2); color: #06d6a0; }
+    .badge-extends { background: rgba(67,97,238,0.2); color: #4361ee; }
+    .badge-unrelated { background: rgba(173,181,189,0.2); color: #adb5bd; }
+
+    .empty-state { text-align: center; padding: 2.5rem; color: var(--text-muted); font-size: 0.9rem; }
+
+    /* Manual detect */
+    .detect-form { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.07); }
+    .detect-form h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.85rem; font-weight: 600; }
+
+    /* Split-screen compare panel */
+    .compare-row { display: none; }
+    .compare-panel {
+      border-top: 1px solid rgba(255,255,255,0.07);
+      background: var(--bg);
+    }
+    .compare-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface2);
+      padding: 0.5rem 1rem;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+    }
+    .compare-header code { color: var(--accent); font-size: 0.82rem; }
+    .close-btn {
+      background: transparent !important;
+      color: var(--text-muted) !important;
+      font-size: 1.2rem;
+      padding: 0.1rem 0.5rem;
+      border: none !important;
+      line-height: 1;
+    }
+    .compare-cols { display: flex; min-height: 140px; }
+    .compare-col { flex: 1; padding: 1rem 1.25rem; }
+    .compare-col.flat-col { background: rgba(239,35,60,0.05); border-right: 1px solid rgba(255,255,255,0.07); }
+    .compare-col.cs-col { background: rgba(6,214,160,0.04); }
+    .compare-col-head { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.3rem; }
+    .flat-col .compare-col-head { color: #ef233c; }
+    .cs-col .compare-col-head { color: #06d6a0; }
+    .compare-col-sub { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+    .compare-answer { font-size: 0.88rem; line-height: 1.55; }
+    .chronoscholar-panel { opacity: 0; transition: opacity 0.5s ease-in; }
+    .chronoscholar-panel.visible { opacity: 1; }
+    .contradiction-inline {
+      margin-top: 0.75rem;
+      padding: 0.55rem 0.75rem;
+      border-radius: var(--radius);
+      font-size: 0.82rem;
+      line-height: 1.5;
+    }
+
+    /* Spinner */
+    .spin-wrap { text-align: center; padding: 1rem; display: none; }
+    .spinner {
+      display: inline-block;
+      width: 22px; height: 22px;
+      border: 3px solid rgba(255,255,255,0.15);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .mini-spin {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid rgba(255,255,255,0.15);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 0.4rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Query */
+    .radio-group { display: flex; gap: 1.25rem; flex-wrap: wrap; margin: 0.6rem 0 1rem; }
+    .radio-group label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; cursor: pointer; }
+    input[type="radio"] { accent-color: var(--accent); }
+    .answer-box { background: var(--surface2); border-radius: var(--radius); padding: 1rem; margin-top: 1rem; font-size: 0.9rem; line-height: 1.65; min-height: 60px; white-space: pre-wrap; display: none; }
+    .source-cards { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
+    .source-card { background: var(--surface2); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 0.6rem 0.9rem; font-size: 0.82rem; }
+    .source-card .sc-id { color: var(--accent); font-weight: 600; font-family: monospace; }
+    .source-card .sc-title { color: var(--text); margin: 0.1rem 0; }
+    .source-card .sc-date { color: var(--text-muted); font-size: 0.75rem; }
+    .source-card .sc-excerpt { color: var(--text-muted); margin-top: 0.3rem; }
+
+    @media (max-width: 640px) {
+      main { padding: 1rem; }
+      .form-row { flex-direction: column; }
+      .compare-cols { flex-direction: column; }
+      .compare-col.flat-col { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.07); }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>&#9200; ChronoScholar</h1>
+  <p>Temporally-aware research memory agent &mdash; powered by Cognee knowledge graph</p>
+</header>
+
+<main>
+
+  <!-- ═══ SECTION 1: INGEST ═══════════════════════════════════════════════ -->
+  <section>
+    <h2>&#128229; Ingest Papers</h2>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:3">
+        <label for="q-query">arXiv Search Query</label>
+        <input type="text" id="q-query" placeholder="agent memory knowledge graph" />
+      </div>
+      <div class="form-group" style="flex:1">
+        <label for="q-max">Max Papers</label>
+        <input type="number" id="q-max" value="20" min="1" max="100" />
+      </div>
+      <div class="form-group" style="flex:1">
+        <label for="q-domain">Domain Tag (optional)</label>
+        <input type="text" id="q-domain" placeholder="cs.AI" />
+      </div>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <button id="ingest-btn" onclick="startIngest()">Start Ingestion</button>
+      <button class="secondary" onclick="window.open('/graph/visualise','_blank')">View Knowledge Graph &#8599;</button>
+    </div>
+
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-meta">
+        <span class="progress-msg" id="progress-msg">Starting&hellip;</span>
+        <span class="progress-msg" id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="progress-bar"></div>
+      </div>
+    </div>
+
+    <div class="stat-cards" id="stat-cards" style="display:none">
+      <div class="stat-card"><div class="val" id="s-papers">0</div><div class="lbl">Papers Ingested</div></div>
+      <div class="stat-card"><div class="val" id="s-entities">0</div><div class="lbl">Entities</div></div>
+      <div class="stat-card"><div class="val" id="s-edges">0</div><div class="lbl">Edges</div></div>
+    </div>
+
+    <div class="banner error" id="ingest-error"></div>
+  </section>
+
+  <!-- ═══ SECTION 2: CONTRADICTIONS ═══════════════════════════════════════ -->
+  <section>
+    <h2>&#9889; Contradiction Dashboard</h2>
+
+    <div class="table-controls">
+      <label>
+        Min Confidence: <strong id="conf-val">0.70</strong>
+        <input type="range" id="conf-slider" min="0" max="1" step="0.05" value="0.7"
+               oninput="document.getElementById('conf-val').textContent=parseFloat(this.value).toFixed(2);loadContradictions()" />
+      </label>
+      <button class="secondary" onclick="loadContradictions()" style="padding:0.35rem 0.8rem;font-size:0.82rem">&#8635; Refresh</button>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Paper A</th>
+            <th>Paper B</th>
+            <th>Label</th>
+            <th>Conf</th>
+            <th>Explanation</th>
+          </tr>
+        </thead>
+        <tbody id="c-body">
+          <tr><td colspan="5"><div class="empty-state">Loading&hellip;</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="detect-form">
+      <h3>Manual Detection</h3>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="det-a">Paper ID A</label>
+          <input type="text" id="det-a" placeholder="2504.19413" />
+        </div>
+        <div class="form-group">
+          <label for="det-b">Paper ID B</label>
+          <input type="text" id="det-b" placeholder="2501.13956" />
+        </div>
+        <div class="form-group" style="flex:0;justify-content:flex-end;padding-top:1.4rem">
+          <button id="det-btn" onclick="runDetect()">Detect</button>
+        </div>
+      </div>
+      <div class="banner" id="det-banner"></div>
+    </div>
+  </section>
+
+  <!-- ═══ SECTION 3: QUERY ═════════════════════════════════════════════════ -->
+  <section>
+    <h2>&#128269; Query the Knowledge Graph</h2>
+
+    <div class="form-group">
+      <label for="q-question">Question</label>
+      <textarea id="q-question" placeholder="What do the papers say about graph memory versus vector memory?"></textarea>
+    </div>
+
+    <div class="radio-group">
+      <label><input type="radio" name="smode" value="GRAPH_COMPLETION" checked /> Graph Completion</label>
+      <label><input type="radio" name="smode" value="SUMMARIES" /> Summaries</label>
+      <label><input type="radio" name="smode" value="RAG_COMPLETION" /> RAG Completion</label>
+    </div>
+
+    <button id="q-btn" onclick="runQuery()">Ask</button>
+
+    <div class="spin-wrap" id="q-spin"><div class="spinner"></div></div>
+    <div class="answer-box" id="answer-box"></div>
+    <div class="source-cards" id="source-cards"></div>
+    <div class="banner error" id="q-error"></div>
+  </section>
+
+</main>
+
+<script>
+/* ─── Utilities ─────────────────────────────────────────────────────────── */
+
+function showBanner(id, msg, type) {
+  var el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'banner ' + (type || 'error');
+  el.style.display = 'block';
+}
+function hideBanner(id) {
+  var el = document.getElementById(id);
+  if (el) el.style.display = 'none';
+}
+async function apiFetch(url, opts) {
+  var res = await fetch(url, Object.assign({ headers: { 'Content-Type': 'application/json' } }, opts || {}));
+  if (!res.ok) {
+    var body = {};
+    try { body = await res.json(); } catch(_) {}
+    throw new Error(body.detail || ('HTTP ' + res.status));
+  }
+  return res.json();
+}
+function badge(label) {
+  var cls = { contradicts:'contradicts', supports:'supports', extends:'extends', unrelated:'unrelated' }[label] || 'unrelated';
+  return '<span class="badge badge-' + cls + '">' + label + '</span>';
+}
+function badgeColor(label) {
+  return { contradicts:'#ef233c', supports:'#06d6a0', extends:'#4361ee', unrelated:'#adb5bd' }[label] || '#adb5bd';
+}
+function badgeBg(label) {
+  return { contradicts:'rgba(239,35,60,0.15)', supports:'rgba(6,214,160,0.12)', extends:'rgba(67,97,238,0.12)', unrelated:'rgba(173,181,189,0.12)' }[label] || 'rgba(255,255,255,0.07)';
+}
+
+/* ─── Section 1: Ingest ─────────────────────────────────────────────────── */
+
+var pollTimer = null;
+
+async function startIngest() {
+  hideBanner('ingest-error');
+  var query = document.getElementById('q-query').value.trim();
+  var maxP  = parseInt(document.getElementById('q-max').value, 10) || 20;
+  var tag   = document.getElementById('q-domain').value.trim() || null;
+  if (!query) { showBanner('ingest-error', 'Please enter a search query.'); return; }
+
+  var btn = document.getElementById('ingest-btn');
+  btn.disabled = true; btn.textContent = 'Starting…';
+  document.getElementById('progress-wrap').style.display = 'block';
+  document.getElementById('stat-cards').style.display = 'none';
+  setProgress(0, 'Submitting…');
+
+  try {
+    var data = await apiFetch('/ingest', {
+      method: 'POST',
+      body: JSON.stringify({ query: query, max_papers: maxP, domain_tag: tag })
+    });
+    btn.textContent = 'Running…';
+    pollIngest(data.run_id);
+  } catch(err) {
+    btn.disabled = false; btn.textContent = 'Start Ingestion';
+    document.getElementById('progress-wrap').style.display = 'none';
+    showBanner('ingest-error', 'Ingest failed: ' + err.message);
+  }
+}
+
+function setProgress(pct, msg) {
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-pct').textContent = pct + '%';
+  document.getElementById('progress-msg').textContent = msg;
+}
+
+function pollIngest(runId) {
+  clearInterval(pollTimer);
+  pollTimer = setInterval(async function() {
+    try {
+      var s = await apiFetch('/ingest/status/' + runId);
+      setProgress(s.progress_percent, s.message);
+      if (s.status === 'complete') {
+        clearInterval(pollTimer);
+        document.getElementById('ingest-btn').disabled = false;
+        document.getElementById('ingest-btn').textContent = 'Start Ingestion';
+        await showStats(s);
+        loadContradictions();
+      } else if (s.status === 'failed') {
+        clearInterval(pollTimer);
+        document.getElementById('ingest-btn').disabled = false;
+        document.getElementById('ingest-btn').textContent = 'Start Ingestion';
+        showBanner('ingest-error', 'Ingestion failed: ' + s.message);
+      }
+    } catch(err) {
+      clearInterval(pollTimer);
+      showBanner('ingest-error', 'Status poll failed: ' + err.message);
+    }
+  }, 3000);
+}
+
+async function showStats(statusData) {
+  var entities = '—', edges = '—';
+  try {
+    var stats = await apiFetch('/graph/stats');
+    entities = stats.entity_count != null ? stats.entity_count : '—';
+    edges    = stats.edge_count   != null ? stats.edge_count   : '—';
+  } catch(_) {}
+  document.getElementById('s-papers').textContent   = statusData.papers_fetched != null ? statusData.papers_fetched : '—';
+  document.getElementById('s-entities').textContent = entities;
+  document.getElementById('s-edges').textContent    = edges;
+  document.getElementById('stat-cards').style.display = 'flex';
+}
+
+/* ─── Section 2: Contradictions ─────────────────────────────────────────── */
+
+var allContradictions = [];
+var openRowIdx = null;
+
+async function loadContradictions() {
+  var conf = parseFloat(document.getElementById('conf-slider').value);
+  var tbody = document.getElementById('c-body');
+  tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">Loading…</div></td></tr>';
+  closeCompare();
+  try {
+    var data = await apiFetch('/contradictions?min_confidence=' + conf + '&limit=20');
+    allContradictions = data.contradictions || [];
+    renderTable(allContradictions);
+  } catch(err) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state" style="color:#ef233c">Failed: ' + err.message + '</div></td></tr>';
+  }
+}
+
+function renderTable(pairs) {
+  var tbody = document.getElementById('c-body');
+  if (!pairs || pairs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No contradictions detected yet. Ingest papers first.</div></td></tr>';
+    return;
+  }
+  var html = '';
+  pairs.forEach(function(p, i) {
+    html += '<tr class="data-row" data-idx="' + i + '" onclick="onRowClick(' + i + ',this)">'
+      + '<td style="font-family:monospace;font-size:0.82rem">' + p.paper_id_a + '</td>'
+      + '<td style="font-family:monospace;font-size:0.82rem">' + p.paper_id_b + '</td>'
+      + '<td>' + badge(p.label) + '</td>'
+      + '<td>' + Math.round(p.confidence * 100) + '%</td>'
+      + '<td style="color:var(--text-muted);max-width:280px;font-size:0.82rem">' + (p.explanation || '—') + '</td>'
+      + '</tr>'
+      + '<tr class="compare-row" id="cr-' + i + '">'
+      + '<td colspan="5" style="padding:0">'
+      + '<div class="compare-panel" id="cp-' + i + '">'
+      + '<div class="compare-header">'
+      + '<span>Comparing <code>' + p.paper_id_a + '</code> vs <code>' + p.paper_id_b + '</code></span>'
+      + '<button class="close-btn" onclick="closeCompare(event)">&times;</button>'
+      + '</div>'
+      + '<div class="compare-cols">'
+      + '<div class="compare-col flat-col">'
+      + '<div class="compare-col-head">Single-paper RAG</div>'
+      + '<div class="compare-col-sub">One paper. No context.</div>'
+      + '<div class="compare-answer" id="flat-' + i + '"><span class="mini-spin"></span> Fetching…</div>'
+      + '</div>'
+      + '<div class="compare-col cs-col chronoscholar-panel" id="cs-col-' + i + '">'
+      + '<div class="compare-col-head">ChronoScholar</div>'
+      + '<div class="compare-col-sub">Cross-paper synthesis. Contradiction surfaced.</div>'
+      + '<div class="compare-answer" id="cs-' + i + '"><span class="mini-spin"></span> Synthesising…</div>'
+      + '</div>'
+      + '</div>'
+      + '</div>'
+      + '</td></tr>';
+  });
+  tbody.innerHTML = html;
+}
+
+function onRowClick(idx, tr) {
+  if (openRowIdx === idx) { closeCompare(); return; }
+  closeCompare();
+  tr.classList.add('selected');
+  openRowIdx = idx;
+  document.getElementById('cr-' + idx).style.display = 'table-row';
+  var p = allContradictions[idx];
+  var q = 'What are the key findings of each paper and how do they compare?';
+  fetchCompare(idx, p.paper_id_a, p.paper_id_b, q);
+}
+
+function closeCompare(evt) {
+  if (evt) evt.stopPropagation();
+  if (openRowIdx !== null) {
+    var cr = document.getElementById('cr-' + openRowIdx);
+    if (cr) cr.style.display = 'none';
+    document.querySelectorAll('#c-body tr.data-row').forEach(function(r) { r.classList.remove('selected'); });
+    openRowIdx = null;
+  }
+}
+
+async function fetchCompare(idx, pidA, pidB, question) {
+  try {
+    var data = await apiFetch('/compare', {
+      method: 'POST',
+      body: JSON.stringify({ paper_id_a: pidA, paper_id_b: pidB, question: question })
+    });
+
+    // Flat RAG — immediate
+    var flatEl = document.getElementById('flat-' + idx);
+    if (flatEl) flatEl.textContent = (data.flat_rag && data.flat_rag.answer) ? data.flat_rag.answer : 'No answer returned.';
+
+    // ChronoScholar — fade in after 1 s
+    setTimeout(function() {
+      var csEl  = document.getElementById('cs-' + idx);
+      var csCol = document.getElementById('cs-col-' + idx);
+      if (!csEl || !csCol) return;
+      var cs = data.chronoscholar;
+      var html = (cs && cs.answer) ? cs.answer : 'No synthesis available.';
+      if (cs && cs.contradiction) {
+        var c = cs.contradiction;
+        var fg = badgeColor(c.label), bg = badgeBg(c.label);
+        html += '<div class="contradiction-inline" style="background:' + bg + ';border:1px solid ' + fg + '55;color:' + fg + '">'
+          + badge(c.label) + ' Confidence: ' + Math.round(c.confidence * 100) + '%'
+          + '<small style="display:block;margin-top:0.3rem;color:var(--text-muted)">' + (c.explanation || '') + '</small>'
+          + '</div>';
+      }
+      csEl.innerHTML = html;
+      csCol.classList.add('visible');
+    }, 1000);
+
+  } catch(err) {
+    var flatEl = document.getElementById('flat-' + idx);
+    if (flatEl) flatEl.textContent = 'Error: ' + err.message;
+    var csEl  = document.getElementById('cs-' + idx);
+    var csCol = document.getElementById('cs-col-' + idx);
+    if (csEl) { csEl.textContent = 'Error: ' + err.message; }
+    if (csCol) { csCol.classList.add('visible'); }
+  }
+}
+
+async function runDetect() {
+  hideBanner('det-banner');
+  var a = document.getElementById('det-a').value.trim();
+  var b = document.getElementById('det-b').value.trim();
+  if (!a || !b) { showBanner('det-banner', 'Both paper IDs required.'); return; }
+  if (a === b)  { showBanner('det-banner', 'Paper IDs must be different.'); return; }
+  var btn = document.getElementById('det-btn');
+  btn.disabled = true; btn.textContent = 'Detecting…';
+  try {
+    var r = await apiFetch('/detect', { method: 'POST', body: JSON.stringify({ paper_id_a: a, paper_id_b: b }) });
+    allContradictions.unshift(r);
+    renderTable(allContradictions);
+    showBanner('det-banner', 'Detected: ' + r.label + ' (' + Math.round(r.confidence*100) + '% confidence)', 'success');
+  } catch(err) {
+    showBanner('det-banner', 'Detection failed: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Detect';
+  }
+}
+
+/* ─── Section 3: Query ───────────────────────────────────────────────────── */
+
+async function runQuery() {
+  hideBanner('q-error');
+  var question = document.getElementById('q-question').value.trim();
+  if (!question) { showBanner('q-error', 'Please enter a question.'); return; }
+  var mode = (document.querySelector('input[name="smode"]:checked') || {}).value || 'GRAPH_COMPLETION';
+
+  var btn = document.getElementById('q-btn');
+  btn.disabled = true; btn.textContent = 'Asking…';
+  document.getElementById('q-spin').style.display = 'block';
+  document.getElementById('answer-box').style.display = 'none';
+  document.getElementById('source-cards').innerHTML = '';
+
+  try {
+    var data = await apiFetch('/query', {
+      method: 'POST',
+      body: JSON.stringify({ question: question, search_mode: mode, max_results: 5 })
+    });
+    var ans = (data.answer || 'No answer returned.').replace(/^\[['"]|['"]\]$/g, '').trim();
+    var ab = document.getElementById('answer-box');
+    ab.textContent = ans;
+    ab.style.display = 'block';
+
+    var sc = document.getElementById('source-cards');
+    if (data.sources && data.sources.length) {
+      sc.innerHTML = data.sources.map(function(s) {
+        return '<div class="source-card">'
+          + '<div class="sc-id">[' + s.paper_id + ']</div>'
+          + '<div class="sc-title">' + s.title + '</div>'
+          + '<div class="sc-date">' + s.published_date + '</div>'
+          + '<div class="sc-excerpt">' + s.excerpt + '</div>'
+          + '</div>';
+      }).join('');
+    }
+  } catch(err) {
+    showBanner('q-error', 'Query failed: ' + err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Ask';
+    document.getElementById('q-spin').style.display = 'none';
+  }
+}
+
+/* ─── Init ───────────────────────────────────────────────────────────────── */
+
+document.addEventListener('DOMContentLoaded', loadContradictions);
+</script>
+</body>
+</html>

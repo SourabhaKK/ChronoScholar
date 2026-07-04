@@ -43,13 +43,36 @@ def create_app() -> FastAPI:
         if not hasattr(application.state, "run_store"):
             application.state.run_store = {"contradictions": []}
         import json as _json
+        from datetime import UTC, datetime
         from pathlib import Path
+        from app.schemas.contradiction import ContradictionPair
         predictions_path = Path("data/predictions.json")
         if predictions_path.exists():
             try:
-                cached = _json.loads(predictions_path.read_text())
-                application.state.run_store["contradictions"] = cached
-                logger.info("Loaded %d cached contradictions", len(cached))
+                raw = _json.loads(predictions_path.read_text())
+                pairs: list[ContradictionPair] = []
+                for entry in raw:
+                    # Benchmark output uses predicted_label/predicted_confidence;
+                    # server cache uses label/confidence. Normalise either format.
+                    label = entry.get("label") or entry.get("predicted_label") or "unrelated"
+                    confidence = entry.get("confidence") or entry.get("predicted_confidence") or 0.0
+                    # Only include valid labels
+                    if label not in ("contradicts", "supports", "extends", "unrelated"):
+                        label = "unrelated"
+                    pairs.append(ContradictionPair(
+                        pair_id=entry.get("pair_id", ""),
+                        paper_id_a=entry.get("paper_id_a", ""),
+                        paper_id_b=entry.get("paper_id_b", ""),
+                        label=label,
+                        confidence=float(confidence),
+                        claim_a=entry.get("claim_a") or entry.get("notes") or "",
+                        claim_b=entry.get("claim_b") or "",
+                        explanation=entry.get("explanation") or entry.get("annotation_notes") or "",
+                        detection_method=entry.get("detection_method", "llm"),
+                        detected_at=entry.get("detected_at") or datetime.now(UTC).isoformat(),
+                    ))
+                application.state.run_store["contradictions"] = pairs
+                logger.info("Loaded %d cached contradictions", len(pairs))
             except Exception as exc:
                 logger.warning("Could not load cached contradictions: %s", exc)
         logger.info("ChronoScholar startup complete")

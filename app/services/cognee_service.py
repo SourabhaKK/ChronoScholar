@@ -29,6 +29,16 @@ class CogneeService:
             data_path.mkdir(parents=True, exist_ok=True)
             cognee.config.data_root_directory(str(data_path))
             cognee.config.system_root_directory(str(data_path / "cognee_system"))
+            # Auto-detect whether a previously-seeded graph exists.
+            try:
+                from cognee.infrastructure.databases.graph import get_graph_engine
+                engine = await get_graph_engine()
+                nodes, _ = await engine.get_graph_data()
+                if nodes:
+                    instance.graph_loaded = True
+                    logger.info("Existing graph detected (%d nodes) — graph_loaded=True", len(nodes))
+            except Exception as probe_exc:
+                logger.debug("Graph probe on startup: %s", probe_exc)
         except ImportError as exc:
             logger.warning("Cognee import failed: %s", exc)
         return instance

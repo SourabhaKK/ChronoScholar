@@ -2,7 +2,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field
 
-SearchMode = Literal["GRAPH_COMPLETION", "SEMANTIC", "HYBRID"]
+SearchMode = Literal["GRAPH_COMPLETION", "SUMMARIES", "RAG_COMPLETION", "SEMANTIC", "HYBRID"]
 
 
 class QueryRequest(BaseModel):
