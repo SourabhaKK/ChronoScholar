@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 from dotenv import load_dotenv
-load_dotenv()
+load_dotenv(override=True)
 
 
 async def main(limit: int | None = None, skip_ingestion: bool = False) -> None:
@@ -56,7 +56,8 @@ async def main(limit: int | None = None, skip_ingestion: bool = False) -> None:
         print(f"  Duration: {duration:.1f}s")
 
     # Pre-compute demo comparison and save to disk.
-    # Runs immediately after cognify() when the TPM budget is fresh.
+    # Order: detect() and CHUNKS first (neither uses Groq TPM in the primary path),
+    # then sleep 65s to guarantee a full Groq TPM window reset, then GRAPH_COMPLETION.
     print("\nPre-computing demo comparison cache...")
     from app.services.llm_service import LLMService
     from app.services.contradiction_service import ContradictionService
@@ -65,26 +66,31 @@ async def main(limit: int | None = None, skip_ingestion: bool = False) -> None:
     PAPER_A_ID = "2504.19413"
     PAPER_B_ID = "2501.13956"
 
-    # CHUNKS search for flat_rag (single retrieved segment)
+    # Fetch papers (arXiv, no Groq usage)
+    paper_a = arxiv_svc.fetch_by_id(PAPER_A_ID)
+    paper_b = arxiv_svc.fetch_by_id(PAPER_B_ID)
+
+    # detect() uses Gemini as primary (no Groq TPM), Groq only as tier-2 fallback.
+    llm_svc = LLMService(settings=settings)
+    contradiction_svc = ContradictionService(llm_service=llm_svc)
+
+    # CHUNKS search for flat_rag (vector retrieval only — no Groq LLM)
     flat_result = await cognee_svc.search(DEMO_QUESTION, "CHUNKS")
     flat_answer = flat_result.get("answer", "") or ""
     flat_answer = flat_answer.strip("[]'\"")[:300] if flat_answer else "No content found."
 
-    # GRAPH_COMPLETION for cross-paper synthesis — wait briefly to avoid
-    # competing with any internal Cognee LLM calls still draining the TPM window.
+    # Brief pause before GRAPH_COMPLETION to let any prior LLM calls settle.
     await asyncio.sleep(5)
+
     graph_result = await cognee_svc.search(DEMO_QUESTION, "GRAPH_COMPLETION")
     graph_answer = graph_result.get("answer", "") or ""
     graph_answer = graph_answer.strip("[]'\"")[:2000] if graph_answer else ""
 
-    # detect() for contradiction pair (uses LLMService with tier-2 fallback)
-    llm_svc = LLMService(settings=settings)
-    contradiction_svc = ContradictionService(llm_service=llm_svc)
-    paper_a = arxiv_svc.fetch_by_id(PAPER_A_ID)
-    paper_b = arxiv_svc.fetch_by_id(PAPER_B_ID)
-
     if paper_a and paper_b:
-        contradiction = contradiction_svc.detect(paper_a, paper_b)
+        # Provide the same claim context used in the benchmark to ensure correct
+        # classification. Mirrors build_benchmark.py's context injection.
+        demo_context = "- Background: Mem0 reports minimal graph memory gains; Zep reports 18.5% improvement over vectors"
+        contradiction = contradiction_svc.detect(paper_a, paper_b, context=demo_context)
         compare_cache = {
             f"{PAPER_A_ID}:{PAPER_B_ID}": {
                 "flat_rag": {

@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     # LLM_PROVIDER is reserved for Cognee's internal config (must be a Cognee LLMProvider value).
     app_llm_provider: str = "groq"
     groq_model: str = "llama-3.1-8b-instant"
-    gemini_model: str = "gemini-1.5-flash"
+    gemini_model: str = "gemini-2.5-flash"
     groq_api_key: str = ""
     gemini_api_key: str = ""
     ollama_base_url: str = ""
