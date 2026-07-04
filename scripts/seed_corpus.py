@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 
 from dotenv import load_dotenv
-load_dotenv(override=True)
+load_dotenv()
 
 
 async def main(limit: int | None = None, skip_ingestion: bool = False) -> None:

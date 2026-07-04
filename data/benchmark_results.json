@@ -1,15 +1,20 @@
 {
-  "model": "gemini-2.5-flash (primary) + groq/llama-3.1-8b-instant (fallback)",
+  "model_app_llm": "gemini-2.5-flash",
+  "model_cognee_llm": "openai/gpt-4o-mini",
+  "model_fallback": "groq/llama-3.1-8b-instant",
   "papers_ingested": 10,
   "entity_count": 118,
   "edge_count": 203,
   "duration_seconds": 63.3,
-  "precision": 1.0,
-  "recall": 1.0,
-  "f1": 1.0,
+  "precision": 1.000,
+  "recall": 1.000,
+  "f1": 1.000,
   "n_pairs": 10,
+  "n_positive": 4,
+  "n_negative": 6,
   "tp": 4,
   "fp": 0,
   "fn": 0,
-  "tn": 6
+  "tn": 6,
+  "statistical_note": "Pilot evaluation only. n=10 insufficient for confidence interval estimation. Results are directional."
 }
