@@ -232,4 +232,5 @@ SESSIONS.md
 data/cognee.db
 data/vectors/
 data/predictions.json
+data/compare_cache.json
 mlflow_tracking/

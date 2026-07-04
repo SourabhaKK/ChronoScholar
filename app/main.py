@@ -42,8 +42,6 @@ def create_app() -> FastAPI:
             )
         if not hasattr(application.state, "run_store"):
             application.state.run_store = {"contradictions": []}
-        if not hasattr(application.state, "compare_cache"):
-            application.state.compare_cache = {}
         import json as _json
         from datetime import UTC, datetime
         from pathlib import Path
@@ -77,6 +75,21 @@ def create_app() -> FastAPI:
                 logger.info("Loaded %d cached contradictions", len(pairs))
             except Exception as exc:
                 logger.warning("Could not load cached contradictions: %s", exc)
+        if not hasattr(application.state, "compare_cache"):
+            compare_cache_path = Path("data/compare_cache.json")
+            if compare_cache_path.exists():
+                try:
+                    cached = _json.loads(compare_cache_path.read_text())
+                    application.state.compare_cache = cached
+                    logger.info(
+                        "Loaded %d pre-computed compare results from compare_cache.json",
+                        len(cached),
+                    )
+                except Exception as exc:
+                    logger.warning("Could not load compare_cache.json: %s", exc)
+                    application.state.compare_cache = {}
+            else:
+                application.state.compare_cache = {}
         logger.info("ChronoScholar startup complete")
         yield
         # Shutdown: release Cognee graph engine explicitly to avoid orphaned file locks.

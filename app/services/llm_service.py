@@ -90,7 +90,11 @@ class LLMService:
         return fallback
 
     def _call_primary(self, prompt: str, system: str = "") -> str:
+        if self.primary_provider == "gemini":
+            return gemini_complete(prompt, self.settings, system=system)
         return groq_complete(prompt, self.settings, system=system)
 
     def _call_fallback(self, prompt: str, system: str = "") -> str:
+        if self.primary_provider == "gemini":
+            return groq_complete(prompt, self.settings, system=system)
         return gemini_complete(prompt, self.settings, system=system)
