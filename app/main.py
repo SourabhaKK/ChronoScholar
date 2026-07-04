@@ -45,6 +45,7 @@ def create_app() -> FastAPI:
         import json as _json
         from datetime import UTC, datetime
         from pathlib import Path
+
         from app.schemas.contradiction import ContradictionPair
         predictions_path = Path("data/predictions.json")
         if predictions_path.exists():

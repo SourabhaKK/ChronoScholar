@@ -40,6 +40,7 @@ class CogneeService:
                 # Scan for orphaned processes holding the Ladybug DB file locked.
                 try:
                     import os
+
                     import psutil
 
                     graph_db_path: str | None = None

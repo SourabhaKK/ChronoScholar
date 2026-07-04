@@ -13,7 +13,6 @@ class RateLimitError(Exception):
 def groq_complete(prompt: str, settings: Settings, system: str = "") -> str:
     """Real Groq SDK call — replaced by the mock_groq_client fixture in tests."""
     from groq import Groq
-
     from groq.types.chat import ChatCompletionMessageParam
 
     messages: list[ChatCompletionMessageParam] = []

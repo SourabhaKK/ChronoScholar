@@ -4,7 +4,13 @@ from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.dependencies import get_arxiv_service, get_cognee_service, get_contradiction_service, get_run_store, get_compare_cache
+from app.dependencies import (
+    get_arxiv_service,
+    get_cognee_service,
+    get_compare_cache,
+    get_contradiction_service,
+    get_run_store,
+)
 from app.schemas.contradiction import (
     ChronoScholarResult,
     CompareRequest,
