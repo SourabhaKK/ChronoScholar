@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Literal
 
@@ -71,51 +72,68 @@ async def compare(
     contradiction_svc: ContradictionService = Depends(get_contradiction_service),  # noqa: B008
     arxiv_svc: ArxivService = Depends(get_arxiv_service),  # noqa: B008
 ) -> CompareResponse:
-    """Side-by-side: single-paper RAG (SUMMARIES) vs ChronoScholar (GRAPH_COMPLETION + detect)."""
-    paper_a = arxiv_svc.fetch_by_id(body.paper_id_a)
-    paper_b = arxiv_svc.fetch_by_id(body.paper_id_b)
+    """Side-by-side: single-paper RAG (SUMMARIES) vs ChronoScholar (GRAPH_COMPLETION + detect).
+
+    Parallelised: both arXiv fetches run concurrently, then both Cognee searches
+    and the LLM detect call run concurrently so wall-clock time ≈ slowest task.
+    """
+    # Phase 1: fetch both papers concurrently (blocking IO → thread pool)
+    loop = asyncio.get_event_loop()
+    paper_a, paper_b = await asyncio.gather(
+        loop.run_in_executor(None, arxiv_svc.fetch_by_id, body.paper_id_a),
+        loop.run_in_executor(None, arxiv_svc.fetch_by_id, body.paper_id_b),
+    )
     if paper_a is None:
         raise HTTPException(status_code=404, detail=f"Paper {body.paper_id_a} not found on arXiv.")
     if paper_b is None:
         raise HTTPException(status_code=404, detail=f"Paper {body.paper_id_b} not found on arXiv.")
+    assert paper_a is not None
+    assert paper_b is not None
 
-    # ── Flat RAG: SUMMARIES search, single-paper context ─────────────────────
-    flat_answer = f"{paper_a.title}: {paper_a.abstract[:400]}"
-    if cognee_svc.graph_loaded:
+    # Phase 2: run SUMMARIES search, GRAPH_COMPLETION search, and detect() concurrently.
+    async def _flat_search() -> str:
+        if not cognee_svc.graph_loaded:
+            return f"{paper_a.title}: {paper_a.abstract[:400]}"
         try:
-            flat_result = await cognee_svc.search(body.question, mode="SUMMARIES")
-            raw = flat_result.get("answer", "")
-            if raw:
-                flat_answer = raw.strip("[]'\"")
+            res = await cognee_svc.search(body.question, mode="SUMMARIES")
+            raw = res.get("answer", "")
+            return raw.strip("[]'\"") if raw else f"{paper_a.title}: {paper_a.abstract[:400]}"
         except Exception as exc:
             logger.warning("SUMMARIES search failed in /compare: %s", exc)
+            return f"{paper_a.title}: {paper_a.abstract[:400]}"
 
-    flat_rag = FlatRagResult(
-        answer=flat_answer,
-        source_paper_id=paper_a.paper_id,
-        source_title=paper_a.title,
-    )
-
-    # ── ChronoScholar: GRAPH_COMPLETION + contradiction detection ─────────────
-    cs_answer = ""
-    if cognee_svc.graph_loaded:
+    async def _graph_search() -> str:
+        if not cognee_svc.graph_loaded:
+            return (
+                f"Paper A ({paper_a.paper_id}): {paper_a.abstract[:300]}… "
+                f"Paper B ({paper_b.paper_id}): {paper_b.abstract[:300]}…"
+            )
         try:
-            cs_result = await cognee_svc.search(body.question, mode="GRAPH_COMPLETION")
-            raw = cs_result.get("answer", "")
-            if raw:
-                cs_answer = raw.strip("[]'\"")
+            res = await cognee_svc.search(body.question, mode="GRAPH_COMPLETION")
+            raw = res.get("answer", "")
+            return raw.strip("[]'\"") if raw else (
+                f"Paper A ({paper_a.paper_id}): {paper_a.abstract[:300]}… "
+                f"Paper B ({paper_b.paper_id}): {paper_b.abstract[:300]}…"
+            )
         except Exception as exc:
             logger.warning("GRAPH_COMPLETION search failed in /compare: %s", exc)
+            return (
+                f"Paper A ({paper_a.paper_id}): {paper_a.abstract[:300]}… "
+                f"Paper B ({paper_b.paper_id}): {paper_b.abstract[:300]}…"
+            )
 
-    if not cs_answer:
-        cs_answer = (
-            f"Paper A ({paper_a.paper_id}): {paper_a.abstract[:300]}… "
-            f"Paper B ({paper_b.paper_id}): {paper_b.abstract[:300]}…"
-        )
+    async def _detect() -> ContradictionPair:
+        return await loop.run_in_executor(None, lambda: contradiction_svc.detect(paper_a, paper_b))
 
-    contradiction = contradiction_svc.detect(paper_a, paper_b)
+    flat_answer, cs_answer, contradiction = await asyncio.gather(
+        _flat_search(), _graph_search(), _detect()
+    )
 
     return CompareResponse(
-        flat_rag=flat_rag,
+        flat_rag=FlatRagResult(
+            answer=flat_answer,
+            source_paper_id=paper_a.paper_id,
+            source_title=paper_a.title,
+        ),
         chronoscholar=ChronoScholarResult(answer=cs_answer, contradiction=contradiction),
     )
