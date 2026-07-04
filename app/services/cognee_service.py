@@ -37,6 +37,36 @@ class CogneeService:
             search_roots = [data_path / "cognee_system", Path(cognee.__file__).parent / ".cognee_system"]
             lbug_found = any(p.exists() and list(p.rglob("*.lbug")) for p in search_roots)
             if lbug_found:
+                # Scan for orphaned processes holding the Ladybug DB file locked.
+                try:
+                    import os
+                    import psutil
+
+                    graph_db_path: str | None = None
+                    for root, _dirs, files in os.walk("data/cognee_system"):
+                        for f in files:
+                            if "ladybug" in f.lower() or f.endswith(".lbug"):
+                                graph_db_path = os.path.join(root, f)
+                                break
+                        if graph_db_path:
+                            break
+
+                    if graph_db_path:
+                        current_pid = os.getpid()
+                        for proc in psutil.process_iter(["pid", "open_files"]):
+                            try:
+                                for file_info in proc.info.get("open_files") or []:
+                                    if graph_db_path in file_info.path and proc.pid != current_pid:
+                                        logger.warning(
+                                            "Stale lock on graph DB held by PID %d — "
+                                            "kill this process before running demo",
+                                            proc.pid,
+                                        )
+                            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                                pass
+                except ImportError:
+                    logger.debug("psutil not available — skipping orphan lock detection")
+
                 instance.graph_loaded = True
                 logger.info("Existing graph detected via .lbug file — graph_loaded=True")
         except ImportError as exc:

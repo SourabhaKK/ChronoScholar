@@ -79,6 +79,16 @@ def create_app() -> FastAPI:
                 logger.warning("Could not load cached contradictions: %s", exc)
         logger.info("ChronoScholar startup complete")
         yield
+        # Shutdown: release Cognee graph engine explicitly to avoid orphaned file locks.
+        # Note: force-kill (taskkill /F) still orphans — stop with Ctrl+C and wait 3 seconds.
+        try:
+            from cognee.infrastructure.databases.graph import get_graph_engine
+            engine = await get_graph_engine()
+            if hasattr(engine, "close"):
+                await engine.close()
+            logger.info("Graph engine closed cleanly")
+        except Exception as exc:
+            logger.warning("Graph engine close failed: %s", exc)
         logger.info("ChronoScholar shutdown")
 
     app = FastAPI(

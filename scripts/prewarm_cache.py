@@ -9,11 +9,6 @@ DEMO_PAIRS = [
         "paper_id_b": "2501.13956",
         "question": "What do these papers claim about graph vs vector memory?"
     },
-    {
-        "paper_id_a": "2504.19413",
-        "paper_id_b": "2505.24478",
-        "question": "What do these papers claim about RAG accuracy?"
-    },
 ]
 
 BASE_URL = "http://localhost:8000"

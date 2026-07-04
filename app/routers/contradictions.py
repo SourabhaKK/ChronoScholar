@@ -74,10 +74,10 @@ async def compare(
     arxiv_svc: ArxivService = Depends(get_arxiv_service),  # noqa: B008
     cache: dict = Depends(get_compare_cache),  # noqa: B008
 ) -> CompareResponse:
-    """Side-by-side: single-paper RAG (SUMMARIES) vs ChronoScholar (GRAPH_COMPLETION + detect).
+    """Side-by-side: single-paper RAG (CHUNKS) vs ChronoScholar (GRAPH_COMPLETION + detect).
 
     arXiv fetches run in parallel (no graph DB access).
-    Cognee SUMMARIES and GRAPH_COMPLETION run sequentially to avoid Windows
+    Cognee CHUNKS and GRAPH_COMPLETION run sequentially to avoid Windows
     file lock contention on the single-file LadybugDB graph.
     detect() fires into the thread pool immediately after arXiv fetches and
     runs concurrently with the Cognee searches (uses Groq only, not the graph DB).
@@ -106,18 +106,18 @@ async def compare(
         None, lambda: contradiction_svc.detect(paper_a, paper_b)
     )
 
-    # SUMMARIES first (flat RAG simulation — single-paper view)
+    # CHUNKS first (flat RAG simulation — single retrieved segment, simulates single-paper RAG)
     logger.info("compare: starting flat_rag search for %s", body.paper_id_a)
     flat_answer: str
     if not cognee_svc.graph_loaded:
         flat_answer = f"{paper_a.title}: {paper_a.abstract[:400]}"
     else:
         try:
-            res = await cognee_svc.search(body.question, mode="SUMMARIES")
+            res = await cognee_svc.search(body.question, mode="CHUNKS")
             raw = res.get("answer", "")
             flat_answer = raw.strip("[]'\"") if raw else f"{paper_a.title}: {paper_a.abstract[:400]}"
         except Exception as exc:
-            logger.warning("SUMMARIES search failed in /compare: %s", exc)
+            logger.warning("CHUNKS search failed in /compare: %s", exc)
             flat_answer = f"{paper_a.title}: {paper_a.abstract[:400]}"
 
     # GRAPH_COMPLETION second (cross-paper synthesis — ChronoScholar view)
