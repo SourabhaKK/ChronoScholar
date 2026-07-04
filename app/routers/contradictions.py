@@ -98,6 +98,7 @@ async def compare(
 
     # Phase 2: run SUMMARIES search, GRAPH_COMPLETION search, and detect() concurrently.
     async def _flat_search() -> str:
+        logger.info("compare: starting flat_rag search for %s", body.paper_id_a)
         if not cognee_svc.graph_loaded:
             return f"{paper_a.title}: {paper_a.abstract[:400]}"
         try:
@@ -109,6 +110,7 @@ async def compare(
             return f"{paper_a.title}: {paper_a.abstract[:400]}"
 
     async def _graph_search() -> str:
+        logger.info("compare: starting graph_completion search")
         if not cognee_svc.graph_loaded:
             return (
                 f"Paper A ({paper_a.paper_id}): {paper_a.abstract[:300]}… "
@@ -129,11 +131,15 @@ async def compare(
             )
 
     async def _detect() -> ContradictionPair:
+        logger.info("compare: starting detect for pair %s/%s", body.paper_id_a, body.paper_id_b)
         return await loop.run_in_executor(None, lambda: contradiction_svc.detect(paper_a, paper_b))
 
     flat_answer, cs_answer, contradiction = await asyncio.gather(
         _flat_search(), _graph_search(), _detect()
     )
+    logger.info("compare: flat_rag answer length: %d", len(flat_answer))
+    logger.info("compare: chronoscholar answer length: %d", len(cs_answer))
+    logger.info("compare: contradiction label: %s", contradiction.label)
     if len(flat_answer) > 300:
         flat_answer = flat_answer[:297] + "..."
 
