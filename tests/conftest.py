@@ -22,6 +22,7 @@ def mock_settings():
         cognee_db_path="/tmp/test_cognee.db",
         contradiction_confidence_threshold=0.7,
         arxiv_request_delay=0.0,
+        llm_fast_mode=False,
     )
 
 
@@ -290,4 +291,5 @@ def test_client(mock_cognee_service: AsyncMock, mock_contradiction_service: Magi
     app.state.contradiction_service = mock_contradiction_service
     app.state.arxiv_service = MagicMock()
     app.state.run_store = {"contradictions": []}
+    app.state.compare_cache = {}
     return TestClient(app, raise_server_exceptions=True)

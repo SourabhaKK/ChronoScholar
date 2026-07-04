@@ -2,9 +2,9 @@ import asyncio
 import logging
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
-from app.dependencies import get_arxiv_service, get_cognee_service, get_contradiction_service, get_run_store
+from app.dependencies import get_arxiv_service, get_cognee_service, get_contradiction_service, get_run_store, get_compare_cache
 from app.schemas.contradiction import (
     ChronoScholarResult,
     CompareRequest,
@@ -68,15 +68,21 @@ async def list_contradictions(
 @router.post("/compare", response_model=CompareResponse)
 async def compare(
     body: CompareRequest,
+    request: Request,
     cognee_svc: CogneeService = Depends(get_cognee_service),  # noqa: B008
     contradiction_svc: ContradictionService = Depends(get_contradiction_service),  # noqa: B008
     arxiv_svc: ArxivService = Depends(get_arxiv_service),  # noqa: B008
+    cache: dict = Depends(get_compare_cache),  # noqa: B008
 ) -> CompareResponse:
     """Side-by-side: single-paper RAG (SUMMARIES) vs ChronoScholar (GRAPH_COMPLETION + detect).
 
     Parallelised: both arXiv fetches run concurrently, then both Cognee searches
     and the LLM detect call run concurrently so wall-clock time ≈ slowest task.
     """
+    cache_key = f"{body.paper_id_a}:{body.paper_id_b}"
+    if cache_key in cache:
+        return cache[cache_key]
+
     # Phase 1: fetch both papers concurrently (blocking IO → thread pool)
     loop = asyncio.get_event_loop()
     paper_a, paper_b = await asyncio.gather(
@@ -128,8 +134,10 @@ async def compare(
     flat_answer, cs_answer, contradiction = await asyncio.gather(
         _flat_search(), _graph_search(), _detect()
     )
+    if len(flat_answer) > 300:
+        flat_answer = flat_answer[:297] + "..."
 
-    return CompareResponse(
+    result = CompareResponse(
         flat_rag=FlatRagResult(
             answer=flat_answer,
             source_paper_id=paper_a.paper_id,
@@ -137,3 +145,5 @@ async def compare(
         ),
         chronoscholar=ChronoScholarResult(answer=cs_answer, contradiction=contradiction),
     )
+    cache[cache_key] = result
+    return result

@@ -20,7 +20,7 @@ def groq_complete(prompt: str, settings: Settings, system: str = "") -> str:
     if system:
         messages.append({"role": "system", "content": system})
     messages.append({"role": "user", "content": prompt})
-    client = Groq(api_key=settings.groq_api_key)
+    client = Groq(api_key=settings.groq_api_key, timeout=10.0)
     response = client.chat.completions.create(
         model=settings.groq_model,
         messages=messages,
@@ -48,6 +48,7 @@ class LLMService:
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.primary_provider = settings.app_llm_provider
+        self.fast_mode = settings.llm_fast_mode
 
     def complete(self, prompt: str, fallback: str = "", system: str = "") -> str:
         # Tier 1: Primary provider with exponential backoff
@@ -58,7 +59,7 @@ class LLMService:
                 break  # Jump to Tier 2 immediately
             except (ConnectionError, TimeoutError) as exc:
                 if attempt < self.MAX_RETRIES - 1:
-                    delay = 2**attempt
+                    delay = (0.5**attempt) if self.fast_mode else (2**attempt)
                     logger.warning(
                         "Primary provider attempt %d failed, retrying in %ds: %s",
                         attempt + 1, delay, exc,
@@ -77,7 +78,7 @@ class LLMService:
             try:
                 return self._call_fallback(prompt, system)
             except RateLimitError:
-                delay = 5 * (2**attempt)
+                delay = (1.0 * (1.5**attempt)) if self.fast_mode else (5 * (2**attempt))
                 logger.warning("Fallback provider rate limited, waiting %ds", delay)
                 time.sleep(delay)
             except Exception as exc:

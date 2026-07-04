@@ -1,4 +1,4 @@
-from pydantic import field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings
 
 VALID_LLM_PROVIDERS = {"groq", "gemini", "ollama", "fallback"}
@@ -22,6 +22,7 @@ class Settings(BaseSettings):
     arxiv_request_delay: float = 3.0
     contradiction_confidence_threshold: float = 0.7
     cognee_batch_size: int = 15
+    llm_fast_mode: bool = Field(default=False)
 
     @field_validator("app_llm_provider")
     @classmethod

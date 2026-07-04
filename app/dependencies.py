@@ -19,3 +19,7 @@ def get_arxiv_service(request: Request) -> ArxivService:
 
 def get_run_store(request: Request) -> dict:
     return request.app.state.run_store
+
+
+def get_compare_cache(request: Request) -> dict:
+    return request.app.state.compare_cache

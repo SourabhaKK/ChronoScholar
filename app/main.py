@@ -42,6 +42,8 @@ def create_app() -> FastAPI:
             )
         if not hasattr(application.state, "run_store"):
             application.state.run_store = {"contradictions": []}
+        if not hasattr(application.state, "compare_cache"):
+            application.state.compare_cache = {}
         import json as _json
         from datetime import UTC, datetime
         from pathlib import Path
