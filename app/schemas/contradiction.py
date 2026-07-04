@@ -35,3 +35,25 @@ class ContradictionResponse(BaseModel):
     returned: int
     offset: int
     contradictions: list[ContradictionPair]
+
+
+class CompareRequest(BaseModel):
+    paper_id_a: str = Field(min_length=1)
+    paper_id_b: str = Field(min_length=1)
+    question: str = Field(default="What are the key findings of each paper and how do they compare?", min_length=1, max_length=500)
+
+
+class FlatRagResult(BaseModel):
+    answer: str
+    source_paper_id: str
+    source_title: str
+
+
+class ChronoScholarResult(BaseModel):
+    answer: str
+    contradiction: ContradictionPair | None = None
+
+
+class CompareResponse(BaseModel):
+    flat_rag: FlatRagResult
+    chronoscholar: ChronoScholarResult
