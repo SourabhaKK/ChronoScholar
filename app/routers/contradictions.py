@@ -76,14 +76,17 @@ async def compare(
 ) -> CompareResponse:
     """Side-by-side: single-paper RAG (SUMMARIES) vs ChronoScholar (GRAPH_COMPLETION + detect).
 
-    Parallelised: both arXiv fetches run concurrently, then both Cognee searches
-    and the LLM detect call run concurrently so wall-clock time ≈ slowest task.
+    arXiv fetches run in parallel (no graph DB access).
+    Cognee SUMMARIES and GRAPH_COMPLETION run sequentially to avoid Windows
+    file lock contention on the single-file LadybugDB graph.
+    detect() fires into the thread pool immediately after arXiv fetches and
+    runs concurrently with the Cognee searches (uses Groq only, not the graph DB).
     """
     cache_key = f"{body.paper_id_a}:{body.paper_id_b}"
     if cache_key in cache:
         return cache[cache_key]
 
-    # Phase 1: fetch both papers concurrently (blocking IO → thread pool)
+    # Phase 1: fetch both papers concurrently (blocking IO → thread pool, no graph DB)
     loop = asyncio.get_event_loop()
     paper_a, paper_b = await asyncio.gather(
         loop.run_in_executor(None, arxiv_svc.fetch_by_id, body.paper_id_a),
@@ -96,47 +99,53 @@ async def compare(
     assert paper_a is not None
     assert paper_b is not None
 
-    # Phase 2: run SUMMARIES search, GRAPH_COMPLETION search, and detect() concurrently.
-    async def _flat_search() -> str:
-        logger.info("compare: starting flat_rag search for %s", body.paper_id_a)
-        if not cognee_svc.graph_loaded:
-            return f"{paper_a.title}: {paper_a.abstract[:400]}"
+    # Phase 2: detect() fires into thread pool immediately (Groq LLM only — no Ladybug lock).
+    # Cognee searches run sequentially to prevent Windows Error 33 file lock contention.
+    logger.info("compare: starting detect for pair %s/%s", body.paper_id_a, body.paper_id_b)
+    detect_future = loop.run_in_executor(
+        None, lambda: contradiction_svc.detect(paper_a, paper_b)
+    )
+
+    # SUMMARIES first (flat RAG simulation — single-paper view)
+    logger.info("compare: starting flat_rag search for %s", body.paper_id_a)
+    flat_answer: str
+    if not cognee_svc.graph_loaded:
+        flat_answer = f"{paper_a.title}: {paper_a.abstract[:400]}"
+    else:
         try:
             res = await cognee_svc.search(body.question, mode="SUMMARIES")
             raw = res.get("answer", "")
-            return raw.strip("[]'\"") if raw else f"{paper_a.title}: {paper_a.abstract[:400]}"
+            flat_answer = raw.strip("[]'\"") if raw else f"{paper_a.title}: {paper_a.abstract[:400]}"
         except Exception as exc:
             logger.warning("SUMMARIES search failed in /compare: %s", exc)
-            return f"{paper_a.title}: {paper_a.abstract[:400]}"
+            flat_answer = f"{paper_a.title}: {paper_a.abstract[:400]}"
 
-    async def _graph_search() -> str:
-        logger.info("compare: starting graph_completion search")
-        if not cognee_svc.graph_loaded:
-            return (
-                f"Paper A ({paper_a.paper_id}): {paper_a.abstract[:300]}… "
-                f"Paper B ({paper_b.paper_id}): {paper_b.abstract[:300]}…"
-            )
+    # GRAPH_COMPLETION second (cross-paper synthesis — ChronoScholar view)
+    logger.info("compare: starting graph_completion search")
+    cs_answer: str
+    if not cognee_svc.graph_loaded:
+        cs_answer = (
+            f"Paper A ({paper_a.paper_id}): {paper_a.abstract[:300]}… "
+            f"Paper B ({paper_b.paper_id}): {paper_b.abstract[:300]}…"
+        )
+    else:
         try:
             res = await cognee_svc.search(body.question, mode="GRAPH_COMPLETION")
             raw = res.get("answer", "")
-            return raw.strip("[]'\"") if raw else (
+            cs_answer = raw.strip("[]'\"") if raw else (
                 f"Paper A ({paper_a.paper_id}): {paper_a.abstract[:300]}… "
                 f"Paper B ({paper_b.paper_id}): {paper_b.abstract[:300]}…"
             )
         except Exception as exc:
             logger.warning("GRAPH_COMPLETION search failed in /compare: %s", exc)
-            return (
+            cs_answer = (
                 f"Paper A ({paper_a.paper_id}): {paper_a.abstract[:300]}… "
                 f"Paper B ({paper_b.paper_id}): {paper_b.abstract[:300]}…"
             )
 
-    async def _detect() -> ContradictionPair:
-        logger.info("compare: starting detect for pair %s/%s", body.paper_id_a, body.paper_id_b)
-        return await loop.run_in_executor(None, lambda: contradiction_svc.detect(paper_a, paper_b))
+    # Collect detect result (likely already done while Cognee searches ran)
+    contradiction = await detect_future
 
-    flat_answer, cs_answer, contradiction = await asyncio.gather(
-        _flat_search(), _graph_search(), _detect()
-    )
     logger.info("compare: flat_rag answer length: %d", len(flat_answer))
     logger.info("compare: chronoscholar answer length: %d", len(cs_answer))
     logger.info("compare: contradiction label: %s", contradiction.label)
@@ -151,5 +160,19 @@ async def compare(
         ),
         chronoscholar=ChronoScholarResult(answer=cs_answer, contradiction=contradiction),
     )
-    cache[cache_key] = result
+    # Only cache when graph synthesis produced substantively more content than flat RAG.
+    # Similar lengths indicate both fell back to abstract snippets — don't cache, allow retry.
+    flat_len = len(result.flat_rag.answer)
+    cs_len = len(result.chronoscholar.answer)
+    if cs_len > flat_len * 1.5:
+        cache[cache_key] = result
+        logger.info(
+            "compare: result cached (cs_len=%d > flat_len=%d * 1.5)", cs_len, flat_len
+        )
+    else:
+        logger.warning(
+            "compare: result NOT cached — answers too similar "
+            "(cs_len=%d, flat_len=%d), graph fallback suspected",
+            cs_len, flat_len,
+        )
     return result

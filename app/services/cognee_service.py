@@ -90,6 +90,12 @@ class CogneeService:
             search_type = mode
 
         results = await cognee.search(question, query_type=search_type)
+        logger.info(
+            "search: mode=%s, graph_loaded=%s, result_length=%d",
+            mode, self.graph_loaded, len(str(results))
+        )
+        if hasattr(results, "__len__") and len(results) == 0:
+            logger.warning("search: empty results — fallback path likely used")
         return {
             "answer": str(results) if results else "",
             "sources": [],
