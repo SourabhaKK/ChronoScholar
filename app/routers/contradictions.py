@@ -28,6 +28,25 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+def extract_chunk_text(result: dict) -> str:
+    """Extract readable text from a cognee_svc.search(CHUNKS) result dict."""
+    if not result:
+        return "No relevant content found."
+    item = result[0] if isinstance(result, list) else result
+    text = (
+        getattr(item, "text", None)
+        or getattr(item, "content", None)
+        or getattr(item, "chunk_text", None)
+        or (item.get("text") if isinstance(item, dict) else None)
+        or (item.get("content") if isinstance(item, dict) else None)
+        or (item.get("chunk_text") if isinstance(item, dict) else None)
+        or (item.get("answer") if isinstance(item, dict) else None)
+    )
+    if not text:
+        text = str(item)
+    return text[:300] if len(text) > 300 else text
+
+
 @router.post("/detect", response_model=ContradictionPair)
 async def detect(
     body: DetectRequest,
@@ -119,9 +138,8 @@ async def compare(
         flat_answer = f"{paper_a.title}: {paper_a.abstract[:400]}"
     else:
         try:
-            res = await cognee_svc.search(body.question, mode="CHUNKS")
-            raw = res.get("answer", "")
-            flat_answer = raw.strip("[]'\"") if raw else f"{paper_a.title}: {paper_a.abstract[:400]}"
+            flat_result = await cognee_svc.search(body.question, mode="CHUNKS")
+            flat_answer = extract_chunk_text(flat_result) or f"{paper_a.title}: {paper_a.abstract[:400]}"
         except Exception as exc:
             logger.warning("CHUNKS search failed in /compare: %s", exc)
             flat_answer = f"{paper_a.title}: {paper_a.abstract[:400]}"

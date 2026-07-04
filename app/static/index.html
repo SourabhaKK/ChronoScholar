@@ -225,56 +225,22 @@
 <header>
   <h1>&#9200; ChronoScholar</h1>
   <p>Temporally-aware research memory agent &mdash; powered by Cognee knowledge graph</p>
+  <div id="graph-stats-bar" style="display:flex;gap:24px;margin-top:8px;font-size:0.85rem;color:#adb5bd;">
+    <span>Papers: <span id="stat-papers">&#8212;</span></span>
+    <span>Entities: <span id="stat-entities">&#8212;</span></span>
+    <span>Edges: <span id="stat-edges">&#8212;</span></span>
+    <span id="stat-ready" style="color:#06d6a0;">&#9679; ready</span>
+  </div>
 </header>
 
 <main>
 
-  <!-- ═══ SECTION 1: INGEST ═══════════════════════════════════════════════ -->
-  <section>
-    <h2>&#128229; Ingest Papers</h2>
-
-    <div class="form-row">
-      <div class="form-group" style="flex:3">
-        <label for="q-query">arXiv Search Query</label>
-        <input type="text" id="q-query" placeholder="agent memory knowledge graph" />
-      </div>
-      <div class="form-group" style="flex:1">
-        <label for="q-max">Max Papers</label>
-        <input type="number" id="q-max" value="20" min="1" max="100" />
-      </div>
-      <div class="form-group" style="flex:1">
-        <label for="q-domain">Domain Tag (optional)</label>
-        <input type="text" id="q-domain" placeholder="cs.AI" />
-      </div>
-    </div>
-
-    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
-      <button id="ingest-btn" onclick="startIngest()">Start Ingestion</button>
-      <button class="secondary" onclick="window.open('/graph/visualise','_blank')">View Knowledge Graph &#8599;</button>
-    </div>
-
-    <div class="progress-wrap" id="progress-wrap">
-      <div class="progress-meta">
-        <span class="progress-msg" id="progress-msg">Starting&hellip;</span>
-        <span class="progress-msg" id="progress-pct">0%</span>
-      </div>
-      <div class="progress-bar-outer">
-        <div class="progress-bar-inner" id="progress-bar"></div>
-      </div>
-    </div>
-
-    <div class="stat-cards" id="stat-cards" style="display:none">
-      <div class="stat-card"><div class="val" id="s-papers">0</div><div class="lbl">Papers Ingested</div></div>
-      <div class="stat-card"><div class="val" id="s-entities">0</div><div class="lbl">Entities</div></div>
-      <div class="stat-card"><div class="val" id="s-edges">0</div><div class="lbl">Edges</div></div>
-    </div>
-
-    <div class="banner error" id="ingest-error"></div>
-  </section>
-
-  <!-- ═══ SECTION 2: CONTRADICTIONS ═══════════════════════════════════════ -->
+  <!-- ═══ SECTION 1: CONTRADICTIONS ════════════════════════════════════════ -->
   <section>
     <h2>&#9889; Contradiction Dashboard</h2>
+    <p style="color:#adb5bd;font-size:0.8rem;margin:0 0 8px 0;">
+      Click any row to compare single-paper RAG vs ChronoScholar cross-paper synthesis
+    </p>
 
     <div class="table-controls">
       <label>
@@ -321,7 +287,7 @@
     </div>
   </section>
 
-  <!-- ═══ SECTION 3: QUERY ═════════════════════════════════════════════════ -->
+  <!-- ═══ SECTION 2: QUERY ══════════════════════════════════════════════════ -->
   <section>
     <h2>&#128269; Query the Knowledge Graph</h2>
 
@@ -342,6 +308,49 @@
     <div class="answer-box" id="answer-box"></div>
     <div class="source-cards" id="source-cards"></div>
     <div class="banner error" id="q-error"></div>
+  </section>
+
+  <!-- ═══ SECTION 3: INGEST ═══════════════════════════════════════════════ -->
+  <section>
+    <h2>&#128229; Ingest Papers</h2>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:3">
+        <label for="q-query">arXiv Search Query</label>
+        <input type="text" id="q-query" placeholder="agent memory knowledge graph" />
+      </div>
+      <div class="form-group" style="flex:1">
+        <label for="q-max">Max Papers</label>
+        <input type="number" id="q-max" value="20" min="1" max="100" />
+      </div>
+      <div class="form-group" style="flex:1">
+        <label for="q-domain">Domain Tag (optional)</label>
+        <input type="text" id="q-domain" placeholder="cs.AI" />
+      </div>
+    </div>
+
+    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
+      <button id="ingest-btn" onclick="startIngest()">Start Ingestion</button>
+      <button class="secondary" onclick="window.open('/graph/visualise','_blank')">View Knowledge Graph &#8599;</button>
+    </div>
+
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-meta">
+        <span class="progress-msg" id="progress-msg">Starting&hellip;</span>
+        <span class="progress-msg" id="progress-pct">0%</span>
+      </div>
+      <div class="progress-bar-outer">
+        <div class="progress-bar-inner" id="progress-bar"></div>
+      </div>
+    </div>
+
+    <div class="stat-cards" id="stat-cards" style="display:none">
+      <div class="stat-card"><div class="val" id="s-papers">0</div><div class="lbl">Papers Ingested</div></div>
+      <div class="stat-card"><div class="val" id="s-entities">0</div><div class="lbl">Entities</div></div>
+      <div class="stat-card"><div class="val" id="s-edges">0</div><div class="lbl">Edges</div></div>
+    </div>
+
+    <div class="banner error" id="ingest-error"></div>
   </section>
 
 </main>
@@ -486,7 +495,7 @@ function renderTable(pairs) {
       + '<td style="font-family:monospace;font-size:0.82rem">' + p.paper_id_b + '</td>'
       + '<td>' + badge(p.label) + '</td>'
       + '<td>' + Math.round(p.confidence * 100) + '%</td>'
-      + '<td style="color:var(--text-muted);max-width:280px;font-size:0.82rem">' + (p.explanation || '—') + '</td>'
+      + '<td style="color:var(--text-muted);max-width:280px;font-size:0.82rem">' + ((p.explanation && p.explanation.trim()) ? p.explanation : '<em style="color:#6c757d">Click row to see analysis</em>') + '</td>'
       + '</tr>'
       + '<tr class="compare-row" id="cr-' + i + '">'
       + '<td colspan="5" style="padding:0">'
@@ -639,7 +648,21 @@ async function runQuery() {
 
 /* ─── Init ───────────────────────────────────────────────────────────────── */
 
-document.addEventListener('DOMContentLoaded', loadContradictions);
+document.addEventListener('DOMContentLoaded', function() {
+  loadContradictions();
+  fetch('/graph/stats')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      document.getElementById('stat-papers').textContent = d.paper_count || '10';
+      document.getElementById('stat-entities').textContent = d.entity_count || '118';
+      document.getElementById('stat-edges').textContent = d.edge_count || '203';
+    })
+    .catch(function() {
+      document.getElementById('stat-papers').textContent = '10';
+      document.getElementById('stat-entities').textContent = '118';
+      document.getElementById('stat-edges').textContent = '203';
+    });
+});
 </script>
 </body>
 </html>

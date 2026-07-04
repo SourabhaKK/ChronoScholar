@@ -127,8 +127,29 @@ class CogneeService:
         )
         if hasattr(results, "__len__") and len(results) == 0:
             logger.warning("search: empty results — fallback path likely used")
+
+        # CHUNKS returns a list of data objects; extract readable text rather than str()-ing
+        # the whole list (which produces {'id': '...', 'text': '...'} noise in the UI).
+        if mode == "CHUNKS" and results:
+            items = results if isinstance(results, list) else [results]
+            texts: list[str] = []
+            for obj in items:
+                txt = (
+                    getattr(obj, "text", None)
+                    or getattr(obj, "content", None)
+                    or getattr(obj, "chunk_text", None)
+                    or (obj.get("text") if isinstance(obj, dict) else None)
+                    or (obj.get("content") if isinstance(obj, dict) else None)
+                    or (obj.get("chunk_text") if isinstance(obj, dict) else None)
+                )
+                if txt:
+                    texts.append(str(txt))
+            answer = " ".join(texts) if texts else str(results)
+        else:
+            answer = str(results) if results else ""
+
         return {
-            "answer": str(results) if results else "",
+            "answer": answer,
             "sources": [],
             "latency_ms": 0,
         }
