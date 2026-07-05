@@ -116,11 +116,11 @@ class CogneeService:
 
             # Build map lazily from the enum itself so missing members never raise AttributeError.
             _mode_map: dict[str, SearchType] = {m.name: m for m in SearchType}
-            search_type: object = _mode_map.get(mode, SearchType.GRAPH_COMPLETION)
+            search_type: SearchType | str = _mode_map.get(mode, SearchType.GRAPH_COMPLETION)
         except ImportError:
             search_type = mode
 
-        results = await cognee.search(question, query_type=search_type)
+        results = await cognee.search(question, query_type=search_type)  # type: ignore[arg-type]
         logger.info(
             "search: mode=%s, graph_loaded=%s, result_length=%d",
             mode, self.graph_loaded, len(str(results))
@@ -201,7 +201,7 @@ class CogneeService:
                     )
                     ntype = str(getattr(node, "type", getattr(node, "node_type", "Entity")))
                     color = color_map.get(ntype, "#2a3f6e")
-                    net.add_node(nid, label=str(name)[:24], title=f"{ntype}: {name}", color=color, size=10)
+                    net.add_node(nid, label=str(name)[:24], title=f"{ntype}: {name}", color=color, size=16)
                     added_ids.add(nid)
 
                 for edge in list(edges)[:600]:
@@ -209,7 +209,7 @@ class CogneeService:
                     dst = str(getattr(edge, "target_node_id", ""))
                     rel = str(getattr(edge, "relationship_type", getattr(edge, "type", "")))
                     if src in added_ids and dst in added_ids:
-                        net.add_edge(src, dst, title=rel, color="#1e2d4a")
+                        net.add_edge(src, dst, title=rel, color="#4a6fa5")
 
             except Exception as exc:
                 logger.warning("Graph visualisation could not load data: %s", exc)
@@ -218,13 +218,21 @@ class CogneeService:
         try:
             import json as _json
             net.set_options(_json.dumps({
-                "nodes": {"shape": "dot", "borderWidth": 1,
-                          "font": {"size": 11, "color": "#8a9ab5"}},
-                "edges": {"arrows": {"to": {"enabled": True, "scaleFactor": 0.4}},
-                          "color": {"color": "#1e2d4a", "highlight": "#5b8dee"}, "width": 1},
-                "physics": {"stabilization": {"iterations": 100, "fit": True},
-                            "barnesHut": {"gravitationalConstant": -6000, "springLength": 80}},
-                "interaction": {"hover": True, "tooltipDelay": 150},
+                "nodes": {
+                    "shape": "dot", "size": 16, "borderWidth": 1,
+                    "font": {"size": 13, "color": "#e8edf5", "strokeWidth": 2, "strokeColor": "#080c14"},
+                },
+                "edges": {
+                    "arrows": {"to": {"enabled": True, "scaleFactor": 0.5}},
+                    "color": {"color": "#4a6fa5", "highlight": "#5b8dee", "opacity": 0.7},
+                    "width": 1.5,
+                    "smooth": {"type": "continuous"},
+                },
+                "physics": {
+                    "stabilization": {"iterations": 150, "fit": True},
+                    "barnesHut": {"gravitationalConstant": -5000, "springLength": 100, "springConstant": 0.04},
+                },
+                "interaction": {"hover": True, "tooltipDelay": 100, "navigationButtons": True},
             }))
         except Exception:
             pass
