@@ -176,22 +176,65 @@ class CogneeService:
     async def get_graph_html(self) -> str:
         from pyvis.network import Network
 
-        net = Network(height="600px", width="100%")
-        html = net.generate_html()
+        net = Network(height="100vh", width="100%", bgcolor="#080c14", font_color="#8a9ab5")
 
+        color_map = {
+            "Paper": "#5b8dee", "Claim": "#e53e3e", "Method": "#38a169",
+            "Dataset": "#ed8936", "Author": "#9f7aea", "Entity": "#2a3f6e",
+        }
+
+        if self.graph_loaded:
+            try:
+                from cognee.infrastructure.databases.graph import get_graph_engine
+
+                graph_engine = await get_graph_engine()
+                nodes, edges = await graph_engine.get_graph_data()
+
+                added_ids: set[str] = set()
+                for node in list(nodes)[:250]:
+                    nid = str(getattr(node, "id", id(node)))
+                    name = (
+                        getattr(node, "name", None)
+                        or getattr(node, "label", None)
+                        or getattr(node, "description", None)
+                        or nid[:12]
+                    )
+                    ntype = str(getattr(node, "type", getattr(node, "node_type", "Entity")))
+                    color = color_map.get(ntype, "#2a3f6e")
+                    net.add_node(nid, label=str(name)[:24], title=f"{ntype}: {name}", color=color, size=10)
+                    added_ids.add(nid)
+
+                for edge in list(edges)[:600]:
+                    src = str(getattr(edge, "source_node_id", ""))
+                    dst = str(getattr(edge, "target_node_id", ""))
+                    rel = str(getattr(edge, "relationship_type", getattr(edge, "type", "")))
+                    if src in added_ids and dst in added_ids:
+                        net.add_edge(src, dst, title=rel, color="#1e2d4a")
+
+            except Exception as exc:
+                logger.warning("Graph visualisation could not load data: %s", exc)
+                net.add_node("msg", label="Graph data unavailable", color="#e53e3e", size=20)
+
+        try:
+            import json as _json
+            net.set_options(_json.dumps({
+                "nodes": {"shape": "dot", "borderWidth": 1,
+                          "font": {"size": 11, "color": "#8a9ab5"}},
+                "edges": {"arrows": {"to": {"enabled": True, "scaleFactor": 0.4}},
+                          "color": {"color": "#1e2d4a", "highlight": "#5b8dee"}, "width": 1},
+                "physics": {"stabilization": {"iterations": 100, "fit": True},
+                            "barnesHut": {"gravitationalConstant": -6000, "springLength": 80}},
+                "interaction": {"hover": True, "tooltipDelay": 150},
+            }))
+        except Exception:
+            pass
+
+        html = net.generate_html()
         dark_override = """
   <style>
-    body, html {
-      background-color: #1a1a2e !important;
-      color: #ffffff !important;
-      margin: 0;
-      padding: 0;
-    }
-    #mynetwork {
-      background-color: #16213e !important;
-      border: 1px solid #2a2a4a !important;
-      border-radius: 8px;
-    }
+    body, html { background-color:#080c14 !important; color:#e8edf5 !important; margin:0; padding:0; }
+    #mynetwork { background-color:#0e1420 !important; border:1px solid #1e2d4a !important;
+                 border-radius:0; width:100% !important; height:100vh !important; }
   </style>
 """
         html = html.replace("</head>", dark_override + "</head>")

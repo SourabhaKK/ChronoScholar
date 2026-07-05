@@ -4,763 +4,760 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChronoScholar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #1a1a2e;
-      --surface: #16213e;
-      --surface2: #0f3460;
-      --accent: #e94560;
-      --text: #eaeaea;
-      --text-muted: #9ca3af;
-      --green: #06d6a0;
-      --red: #ef233c;
-      --blue: #4361ee;
-      --grey: #adb5bd;
-      --radius: 8px;
+      --bg-primary:    #080c14;
+      --bg-secondary:  #0e1420;
+      --bg-tertiary:   #141c2e;
+      --border:        #1e2d4a;
+      --border-bright: #2a3f6e;
+      --text-primary:  #e8edf5;
+      --text-secondary:#8a9ab5;
+      --text-dim:      #4a5568;
+      --contradicts:   #e53e3e;
+      --supports:      #38a169;
+      --extends:       #4299e1;
+      --unrelated:     #718096;
+      --accent:        #5b8dee;
+      --accent-glow:   rgba(91,141,238,0.15);
+      --font-mono:     'JetBrains Mono', 'Fira Code', monospace;
+      --font-sans:     'Inter', system-ui, sans-serif;
     }
 
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Segoe UI', system-ui, sans-serif;
-      font-size: 15px;
-      line-height: 1.6;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
       min-height: 100vh;
     }
 
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-      padding: 1rem 2rem;
-    }
-    header h1 { font-size: 1.4rem; font-weight: 700; color: var(--accent); }
-    header p { color: var(--text-muted); font-size: 0.85rem; }
+    main { max-width: 1200px; margin: 0 auto; padding: 24px 32px 64px; }
 
-    main { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; display: flex; flex-direction: column; gap: 2rem; }
-
-    section {
-      background: var(--surface);
-      border-radius: var(--radius);
-      border: 1px solid rgba(255,255,255,0.07);
-      padding: 1.5rem;
-    }
-    section h2 {
-      font-size: 1.05rem;
-      font-weight: 600;
-      color: var(--accent);
-      margin-bottom: 1.25rem;
-      padding-bottom: 0.6rem;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-    }
-
-    /* ── IMPROVEMENT 1: Typography, card containers, stat bar ── */
-    .section-header {
-      font-size: 1.1rem !important;
-      font-weight: 700 !important;
-      letter-spacing: 0.05em !important;
-      text-transform: uppercase !important;
-      color: #4361ee !important;
-      border-bottom: 1px solid #2a2a4a !important;
-      padding-bottom: 8px !important;
-      margin-bottom: 16px !important;
-    }
     .card {
-      background: #16213e;
-      border: 1px solid #2a2a4a !important;
-      border-radius: 12px !important;
-      padding: 24px !important;
-    }
-    .stat-item {
-      background: #1a1a3e;
-      border: 1px solid #2a2a4a;
-      border-radius: 8px;
-      padding: 6px 14px;
-      font-size: 0.82rem;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 24px;
+      margin-bottom: 16px;
     }
 
-    .form-row { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .form-group { display: flex; flex-direction: column; gap: 0.35rem; flex: 1; min-width: 160px; }
-    .form-group label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
-    input[type="text"], input[type="number"], textarea {
-      background: var(--surface2);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: var(--radius);
-      color: var(--text);
-      padding: 0.5rem 0.75rem;
-      font-size: 0.9rem;
-      width: 100%;
-      outline: none;
-      transition: border-color 0.2s;
+    /* ── Stat chips ── */
+    .stat-chip {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
     }
-    input:focus, textarea:focus { border-color: var(--accent); }
-    textarea { resize: vertical; min-height: 80px; }
+    .chip-label { color: var(--text-dim); }
+    .chip-val   { font-weight: 600; }
 
-    button {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: var(--radius);
-      padding: 0.55rem 1.2rem;
-      font-size: 0.9rem;
-      font-weight: 600;
+    /* ── Evidence chips ── */
+    .ev-chip {
+      font-family: var(--font-mono); font-size: 0.7rem; font-weight: 600;
+      padding: 4px 10px; border-radius: 4px; border: 1px solid; white-space: nowrap;
+    }
+    .ev-red   { color:var(--contradicts); border-color:rgba(229,62,62,0.3);   background:rgba(229,62,62,0.08); }
+    .ev-green { color:var(--supports);    border-color:rgba(56,161,105,0.3);  background:rgba(56,161,105,0.08); }
+    .ev-blue  { color:var(--extends);     border-color:rgba(66,153,225,0.3);  background:rgba(66,153,225,0.08); }
+
+    /* ── Buttons ── */
+    .refresh-btn {
+      background: var(--bg-tertiary); border: 1px solid var(--border);
+      color: var(--text-secondary); border-radius: 6px;
+      padding: 5px 12px; font-family: var(--font-mono); font-size: 0.72rem;
+      cursor: pointer; transition: border-color 0.15s, color 0.15s; white-space: nowrap;
+    }
+    .refresh-btn:hover { border-color: var(--border-bright); color: var(--text-primary); }
+
+    .btn-primary {
+      background: var(--accent); border: none; border-radius: 6px;
+      padding: 8px 18px; color: white; font-family: var(--font-mono);
+      font-size: 0.78rem; font-weight: 600; cursor: pointer; transition: opacity 0.15s;
+    }
+    .btn-primary:hover { opacity: 0.85; }
+    .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-secondary {
+      background: var(--bg-tertiary); border: 1px solid var(--border);
+      border-radius: 6px; padding: 8px 16px; color: var(--text-secondary);
+      font-family: var(--font-mono); font-size: 0.75rem; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-secondary:hover { border-color: var(--border-bright); color: var(--text-primary); }
+
+    /* ── Table rows ── */
+    .c-row {
+      display: grid;
+      grid-template-columns: 120px 120px 110px 90px 1fr;
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
       cursor: pointer;
-      transition: opacity 0.15s;
-      white-space: nowrap;
-    }
-    button:hover { opacity: 0.85; }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
-    button.secondary {
-      background: var(--surface2);
-      border: 1px solid rgba(255,255,255,0.15);
-      color: var(--text);
-    }
-
-    /* Progress */
-    .progress-wrap { margin-top: 1rem; display: none; }
-    .progress-bar-outer { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
-    .progress-bar-inner { height: 100%; background: var(--accent); border-radius: 4px; width: 0%; transition: width 0.4s; }
-    .progress-meta { display: flex; justify-content: space-between; margin-bottom: 0.35rem; }
-    .progress-msg { font-size: 0.82rem; color: var(--text-muted); }
-
-    /* Stat cards (post-ingest) */
-    .stat-cards { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 1rem; }
-    .stat-card { background: var(--surface2); border-radius: var(--radius); padding: 0.75rem 1.25rem; flex: 1; min-width: 120px; text-align: center; }
-    .stat-card .val { font-size: 1.8rem; font-weight: 700; color: var(--accent); }
-    .stat-card .lbl { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
-
-    /* Banners */
-    .banner { padding: 0.65rem 1rem; border-radius: var(--radius); font-size: 0.85rem; margin-top: 0.75rem; display: none; }
-    .banner.error { background: rgba(239,35,60,0.15); border: 1px solid rgba(239,35,60,0.4); color: #ff6b7a; }
-    .banner.success { background: rgba(6,214,160,0.12); border: 1px solid rgba(6,214,160,0.35); color: var(--green); }
-
-    /* Contradiction table */
-    .table-controls { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
-    .table-controls label { font-size: 0.82rem; color: var(--text-muted); display: flex; align-items: center; gap: 0.5rem; }
-    input[type="range"] { width: 130px; accent-color: var(--accent); }
-    .table-wrap { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
-    thead tr { border-bottom: 1px solid rgba(255,255,255,0.1); }
-    th { color: var(--text-muted); font-weight: 600; text-align: left; padding: 0.5rem 0.75rem; font-size: 0.77rem; text-transform: uppercase; letter-spacing: 0.04em; }
-    td { padding: 0.55rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.05); vertical-align: top; }
-    tbody tr.data-row { cursor: pointer; transition: background 0.15s; }
-    tbody tr.data-row:hover { background: rgba(255,255,255,0.04); }
-    tbody tr.data-row.selected { background: rgba(233,69,96,0.1); }
-
-    /* ── IMPROVEMENT 2: Row hover states ── */
-    .contradiction-row { cursor: pointer; transition: background 0.15s ease; }
-    .contradiction-row:hover { background: #1e2a4a; }
-    .contradiction-row.active { background: #1e3a5a; border-left: 3px solid #4361ee; }
-
-    /* ── IMPROVEMENT 4: Label badges ── */
-    .label-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 12px;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-    .label-contradicts { background: #ef233c; color: white; }
-    .label-supports    { background: #06d6a0; color: #0a0a0a; }
-    .label-extends     { background: #4361ee; color: white; }
-    .label-unrelated   { background: #6c757d; color: white; }
-
-    /* Legacy badge classes kept for any remaining uses */
-    .badge { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
-    .badge-contradicts { background: rgba(239,35,60,0.2); color: #ef233c; }
-    .badge-supports { background: rgba(6,214,160,0.2); color: #06d6a0; }
-    .badge-extends { background: rgba(67,97,238,0.2); color: #4361ee; }
-    .badge-unrelated { background: rgba(173,181,189,0.2); color: #adb5bd; }
-
-    .empty-state { text-align: center; padding: 2.5rem; color: var(--text-muted); font-size: 0.9rem; }
-
-    /* Manual detect */
-    .detect-form { margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid rgba(255,255,255,0.07); }
-    .detect-form h3 { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.85rem; font-weight: 600; }
-
-    /* ── IMPROVEMENT 3: Split-screen panel visual polish ── */
-    .compare-row { display: none; }
-    .compare-panel {
-      border-top: 1px solid rgba(255,255,255,0.07);
-      background: var(--bg);
-    }
-    .compare-header {
-      display: flex;
-      justify-content: space-between;
+      transition: background 0.1s;
       align-items: center;
-      background: var(--surface2);
-      padding: 0.5rem 1rem;
-      font-size: 0.82rem;
-      color: var(--text-muted);
+      gap: 0;
     }
-    .compare-header code { color: var(--accent); font-size: 0.82rem; }
-    .close-btn {
-      background: transparent !important;
-      color: var(--text-muted) !important;
-      font-size: 1.2rem;
-      padding: 0.1rem 0.5rem;
-      border: none !important;
-      line-height: 1;
-    }
-    .compare-cols { display: flex; min-height: 140px; gap: 12px; padding: 12px; }
-    .compare-col { flex: 1; }
-    .compare-col.flat-col {
-      background: #1a0a0a;
-      border-left: 3px solid #ef233c;
-      border-radius: 8px;
-      padding: 16px;
-    }
-    .compare-col.cs-col {
-      background: #0a1a0a;
-      border-left: 3px solid #06d6a0;
-      border-radius: 8px;
-      padding: 16px;
-    }
-    .compare-col-head {
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-    .flat-col .compare-col-head { color: #ef233c; }
-    .cs-col .compare-col-head { color: #06d6a0; }
-    .compare-col-sub {
-      font-size: 0.8rem;
-      color: #adb5bd;
-      font-style: italic;
-      margin-bottom: 12px;
-    }
-    .compare-answer { font-size: 0.88rem; line-height: 1.55; }
-    .chronoscholar-panel { opacity: 0; transition: opacity 0.5s ease-in; }
-    .chronoscholar-panel.visible { opacity: 1; }
-    .contradiction-inline {
-      display: block;
-      margin-top: 16px;
-      padding: 12px 16px;
-      background: rgba(239, 35, 60, 0.1);
-      border: 1px solid #ef233c;
-      border-radius: 8px;
-      font-size: 0.82rem;
-      line-height: 1.5;
-    }
+    .c-row:last-child { border-bottom: none; }
+    .c-row:hover { background: var(--bg-tertiary); }
 
-    /* Spinner */
-    .spin-wrap { text-align: center; padding: 1rem; display: none; }
-    .spinner {
-      display: inline-block;
-      width: 22px; height: 22px;
-      border: 3px solid rgba(255,255,255,0.15);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
+    /* ── Mode pills ── */
+    .mode-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: var(--bg-tertiary); border: 1px solid var(--border);
+      border-radius: 20px; padding: 5px 12px;
+      font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-secondary);
+      cursor: pointer; transition: all 0.15s; user-select: none;
     }
-    .mini-spin {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid rgba(255,255,255,0.15);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.6s linear infinite;
-      vertical-align: middle;
-      margin-right: 0.4rem;
+    .mode-pill input[type="radio"] { display: none; }
+    .mode-pill.active { border-color: var(--accent); color: var(--accent); background: var(--accent-glow); }
+
+    /* ── Form inputs ── */
+    input[type="text"], input[type="number"], textarea {
+      background: var(--bg-tertiary); border: 1px solid var(--border);
+      border-radius: 6px; color: var(--text-primary);
+      padding: 8px 12px; font-size: 0.85rem; font-family: var(--font-sans);
+      width: 100%; outline: none; transition: border-color 0.15s;
     }
+    input:focus, textarea:focus { border-color: var(--border-bright); }
+    textarea { resize: vertical; }
+
+    /* ── Banners ── */
+    .banner {
+      padding: 10px 14px; border-radius: 6px; font-size: 0.82rem;
+      margin-top: 12px; display: none; font-family: var(--font-sans);
+    }
+    .banner.error   { background:rgba(229,62,62,0.1);  border:1px solid rgba(229,62,62,0.3);  color:#fc8181; }
+    .banner.success { background:rgba(56,161,105,0.1); border:1px solid rgba(56,161,105,0.3); color:#68d391; }
+
+    /* ── Progress ── */
+    .progress-bar-outer { height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
+    .progress-bar-inner { height: 100%; background: var(--accent); border-radius: 2px; width: 0%; transition: width 0.4s; }
+
+    /* ── Post-ingest stat cards ── */
+    .stat-cards { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .stat-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px; flex: 1; min-width: 100px; text-align: center; }
+    .stat-card .val { font-size: 1.6rem; font-weight: 700; color: var(--accent); font-family: var(--font-mono); }
+    .stat-card .lbl { font-size: 0.72rem; color: var(--text-dim); margin-top: 4px; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.06em; }
+
+    /* ── Source cards ── */
+    .source-card { background: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 6px; padding: 10px 14px; margin-bottom: 8px; font-size: 0.8rem; }
+    .sc-id      { color: var(--accent); font-weight: 600; font-family: var(--font-mono); margin-bottom: 3px; }
+    .sc-title   { color: var(--text-primary); margin-bottom: 2px; }
+    .sc-date    { color: var(--text-dim); font-size: 0.72rem; font-family: var(--font-mono); }
+    .sc-excerpt { color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
+
+    /* ── Markdown in answer / overlay ── */
+    .md p            { margin-bottom: 10px; }
+    .md p:last-child { margin-bottom: 0; }
+    .md strong       { color: var(--text-primary); }
+    .md em           { color: var(--text-secondary); font-style: italic; }
+    .md ul, .md ol   { padding-left: 18px; margin-bottom: 10px; }
+    .md li           { margin-bottom: 4px; }
+    .md h1,.md h2,.md h3 { color: var(--text-primary); margin-bottom: 8px; margin-top: 12px; }
+
+    /* ── Empty state ── */
+    .empty-state { text-align: center; padding: 40px; color: var(--text-dim); font-size: 0.85rem; font-family: var(--font-mono); }
+
+    /* ── Spinner ── */
     @keyframes spin { to { transform: rotate(360deg); } }
+    .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 6px; }
 
-    /* ── IMPROVEMENT 6: Loading pulse ── */
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .loading { animation: pulse 1.5s ease-in-out infinite; color: #adb5bd; }
+    /* ── Pulse (loading text) ── */
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+    .loading { animation: pulse 1.5s ease-in-out infinite; color: var(--text-dim); }
 
-    /* Query */
-    .radio-group { display: flex; gap: 1.25rem; flex-wrap: wrap; margin: 0.6rem 0 1rem; }
-    .radio-group label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; cursor: pointer; }
-    input[type="radio"] { accent-color: var(--accent); }
-    .answer-box { background: var(--surface2); border-radius: var(--radius); padding: 1rem; margin-top: 1rem; font-size: 0.9rem; line-height: 1.65; min-height: 60px; white-space: normal; display: none; }
-    .answer-box p { margin: 0 0 10px 0; }
-    .answer-box strong { color: #ffffff; }
-    .answer-box em { color: #adb5bd; }
-    .source-cards { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
-    .source-card { background: var(--surface2); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 0.6rem 0.9rem; font-size: 0.82rem; }
-    .source-card .sc-id { color: var(--accent); font-weight: 600; font-family: monospace; }
-    .source-card .sc-title { color: var(--text); margin: 0.1rem 0; }
-    .source-card .sc-date { color: var(--text-muted); font-size: 0.75rem; }
-    .source-card .sc-excerpt { color: var(--text-muted); margin-top: 0.3rem; }
+    /* ── Pulsing header dot ── */
+    @keyframes pulse-dot {
+      0%,100% { box-shadow: 0 0 0 3px rgba(56,161,105,0.2); }
+      50%      { box-shadow: 0 0 0 6px rgba(56,161,105,0.05); }
+    }
 
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-primary); }
+    ::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
+
+    @media (max-width: 900px) {
+      main { padding: 16px; }
+      .c-row { grid-template-columns: 90px 90px 90px 60px 1fr; font-size: 0.78rem; }
+    }
     @media (max-width: 640px) {
-      main { padding: 1rem; }
-      .form-row { flex-direction: column; }
-      .compare-cols { flex-direction: column; gap: 8px; }
-      .compare-col.flat-col { border-left: none; border-top: 3px solid #ef233c; }
-      .compare-col.cs-col   { border-left: none; border-top: 3px solid #06d6a0; }
+      .c-row { grid-template-columns: 1fr 1fr; gap: 6px; }
     }
   </style>
 </head>
 <body>
 
-<header>
-  <h1>&#9200; ChronoScholar</h1>
-  <p>Temporally-aware research memory agent &mdash; powered by Cognee knowledge graph</p>
-  <div id="graph-stats-bar" style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;">
-    <span class="stat-item">Papers: <span id="stat-papers">&#8212;</span></span>
-    <span class="stat-item">Entities: <span id="stat-entities">&#8212;</span></span>
-    <span class="stat-item">Edges: <span id="stat-edges">&#8212;</span></span>
-    <span class="stat-item" style="color:#06d6a0;">&#9679; ready</span>
+<!-- ═══ STICKY HEADER ════════════════════════════════════════════════════════ -->
+<header style="
+    background:var(--bg-primary); border-bottom:1px solid var(--border);
+    padding:0 32px; height:56px;
+    display:flex; align-items:center; justify-content:space-between;
+    position:sticky; top:0; z-index:100;
+">
+  <div style="display:flex; align-items:center; gap:12px;">
+    <div style="
+        width:8px; height:8px; border-radius:50%;
+        background:var(--supports);
+        box-shadow:0 0 0 3px rgba(56,161,105,0.2);
+        animation:pulse-dot 2s infinite;
+        flex-shrink:0;
+    "></div>
+    <span style="font-family:var(--font-mono); font-size:0.95rem; font-weight:500; color:var(--text-primary); letter-spacing:0.02em;">ChronoScholar</span>
+    <span style="font-size:0.72rem; color:var(--text-dim); font-family:var(--font-sans); border-left:1px solid var(--border); padding-left:12px; margin-left:4px;">research memory agent</span>
+  </div>
+  <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+    <div class="stat-chip">
+      <span class="chip-label">papers</span>
+      <span class="chip-val" id="stat-papers" style="color:var(--supports)">—</span>
+    </div>
+    <div class="stat-chip">
+      <span class="chip-label">entities</span>
+      <span class="chip-val" id="stat-entities" style="color:var(--accent)">—</span>
+    </div>
+    <div class="stat-chip">
+      <span class="chip-label">edges</span>
+      <span class="chip-val" id="stat-edges" style="color:#ed8936">—</span>
+    </div>
+    <div class="stat-chip" style="border-color:var(--supports)">
+      <span style="color:var(--supports); font-size:0.7rem;">● live</span>
+    </div>
   </div>
 </header>
 
+<!-- ═══ COMPARE OVERLAY (full-screen) ════════════════════════════════════════ -->
+<div id="compare-overlay" style="
+    position:fixed; inset:0;
+    background:rgba(8,12,20,0.97);
+    backdrop-filter:blur(8px);
+    z-index:200;
+    display:none;
+    flex-direction:column;
+    opacity:0;
+    transition:opacity 0.25s ease;
+">
+  <!-- Top bar -->
+  <div style="
+      height:52px; border-bottom:1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+      padding:0 32px; background:var(--bg-secondary); flex-shrink:0;
+  ">
+    <div style="display:flex; align-items:center; gap:8px; font-family:var(--font-mono); font-size:0.8rem; flex-wrap:wrap;">
+      <span style="color:var(--text-dim)">comparing</span>
+      <span id="ov-paper-a" style="color:var(--contradicts); font-weight:600;"></span>
+      <span style="color:var(--text-dim)">vs</span>
+      <span id="ov-paper-b" style="color:var(--supports); font-weight:600;"></span>
+      <span id="ov-label-badge" style="margin-left:8px;"></span>
+    </div>
+    <button onclick="closeOverlay()" style="
+        background:var(--bg-tertiary); border:1px solid var(--border);
+        color:var(--text-secondary); border-radius:6px;
+        padding:6px 14px; font-family:var(--font-mono); font-size:0.75rem; cursor:pointer;
+    ">ESC ✕</button>
+  </div>
+
+  <!-- Two panels -->
+  <div style="flex:1; display:grid; grid-template-columns:1fr 1fr; overflow:hidden; min-height:0;">
+
+    <!-- LEFT: Single-paper RAG -->
+    <div style="border-right:1px solid var(--border); padding:32px; overflow-y:auto; position:relative;">
+      <div style="position:absolute; top:0; left:0; right:0; height:3px; background:var(--contradicts);"></div>
+      <div style="font-family:var(--font-mono); font-size:0.65rem; font-weight:600; letter-spacing:0.12em; color:var(--contradicts); text-transform:uppercase; margin-bottom:4px;">Single-Paper RAG</div>
+      <div style="font-size:0.75rem; color:var(--text-dim); font-family:var(--font-sans); margin-bottom:24px;">One paper. No cross-paper context.</div>
+      <div id="ov-flat" class="md" style="font-size:0.85rem; line-height:1.7; color:var(--text-secondary);"></div>
+    </div>
+
+    <!-- RIGHT: ChronoScholar -->
+    <div id="ov-cs-panel" style="padding:32px; overflow-y:auto; position:relative; opacity:0; transition:opacity 0.6s ease;">
+      <div style="position:absolute; top:0; left:0; right:0; height:3px; background:var(--supports);"></div>
+      <div style="font-family:var(--font-mono); font-size:0.65rem; font-weight:600; letter-spacing:0.12em; color:var(--supports); text-transform:uppercase; margin-bottom:4px;">ChronoScholar</div>
+      <div style="font-size:0.75rem; color:var(--text-dim); font-family:var(--font-sans); margin-bottom:24px;">Cross-paper synthesis. Belief conflict surfaced.</div>
+      <div id="ov-cs-answer" class="md" style="font-size:0.85rem; line-height:1.7; color:var(--text-primary); margin-bottom:24px;"></div>
+      <!-- Contradiction card -->
+      <div id="ov-contradiction-card" style="
+          display:none;
+          background:rgba(229,62,62,0.05);
+          border:1px solid rgba(229,62,62,0.25);
+          border-left:3px solid var(--contradicts);
+          border-radius:6px; padding:16px;
+      ">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+          <span id="ov-badge"></span>
+          <span style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-secondary);">
+            Confidence: <span id="ov-conf" style="color:var(--text-primary); font-weight:600;"></span>
+          </span>
+        </div>
+        <div id="ov-explanation" class="md" style="font-size:0.8rem; line-height:1.6; color:var(--text-secondary);"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <main>
 
-  <!-- ═══ SECTION 1: CONTRADICTIONS ════════════════════════════════════════ -->
-  <section class="card">
-    <h2 class="section-header">&#9889; Contradiction Dashboard</h2>
-    <p style="color:#adb5bd;font-size:0.8rem;margin:0 0 12px 0;">
-      Click any row to compare single-paper RAG vs ChronoScholar cross-paper synthesis
-    </p>
-
-    <div class="table-controls">
-      <label>
-        Min Confidence: <strong id="conf-val">0.70</strong>
-        <input type="range" id="conf-slider" min="0" max="1" step="0.05" value="0.7"
-               oninput="document.getElementById('conf-val').textContent=parseFloat(this.value).toFixed(2);loadContradictions()" />
-      </label>
-      <button class="secondary" onclick="loadContradictions()" style="padding:0.35rem 0.8rem;font-size:0.82rem">&#8635; Refresh</button>
+  <!-- ═══ SECTION 1: BELIEF CONFLICT INDEX ══════════════════════════════════ -->
+  <div class="card">
+    <!-- Header row -->
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; gap:12px; flex-wrap:wrap;">
+      <div>
+        <h2 style="font-family:var(--font-mono); font-size:0.85rem; font-weight:500; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.1em; margin:0 0 4px 0;">Belief Conflict Index</h2>
+        <p style="font-size:0.75rem; color:var(--text-dim); margin:0; font-family:var(--font-sans);">Click any row to surface the contradiction</p>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <div id="ev-contradicts" class="ev-chip ev-red">0 conflicts</div>
+        <div id="ev-supports"   class="ev-chip ev-green">0 supporting</div>
+        <div id="ev-extends"    class="ev-chip ev-blue">0 extensions</div>
+        <button onclick="loadContradictions()" class="refresh-btn">↻ Refresh</button>
+      </div>
     </div>
 
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Paper A</th>
-            <th>Paper B</th>
-            <th>Label</th>
-            <th>Conf</th>
-            <th>Explanation</th>
-          </tr>
-        </thead>
-        <tbody id="c-body">
-          <tr><td colspan="5"><div class="empty-state">Loading&hellip;</div></td></tr>
-        </tbody>
-      </table>
+    <!-- Confidence slider -->
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px; font-size:0.75rem; color:var(--text-dim); font-family:var(--font-mono);">
+      <span>min confidence</span>
+      <input type="range" min="0" max="1" step="0.05" value="0.7" id="conf-slider"
+             style="flex:1; max-width:160px; accent-color:var(--accent);"
+             oninput="document.getElementById('conf-val').textContent=parseFloat(this.value).toFixed(2);loadContradictions()">
+      <span id="conf-val">0.70</span>
     </div>
 
-    <div class="detect-form">
-      <h3>Manual Detection</h3>
-      <div class="form-row">
-        <div class="form-group">
-          <label for="det-a">Paper ID A</label>
+    <!-- Grid table -->
+    <div id="contradiction-table" style="border:1px solid var(--border); border-radius:8px; overflow:hidden;">
+      <!-- Header -->
+      <div style="
+          display:grid; grid-template-columns:120px 120px 110px 90px 1fr;
+          background:var(--bg-tertiary); border-bottom:1px solid var(--border);
+          padding:8px 16px; font-family:var(--font-mono); font-size:0.68rem;
+          font-weight:500; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em;
+      ">
+        <span>Paper A</span><span>Paper B</span><span>Relationship</span><span>Confidence</span><span>Evidence</span>
+      </div>
+      <!-- Rows -->
+      <div id="table-body"><div class="empty-state">Loading…</div></div>
+    </div>
+
+    <!-- Manual detect -->
+    <div style="margin-top:20px; padding-top:20px; border-top:1px solid var(--border);">
+      <div style="font-family:var(--font-mono); font-size:0.68rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:12px;">Manual Detection</div>
+      <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+        <div style="flex:1; min-width:140px;">
+          <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono); margin-bottom:6px;">Paper A ID</div>
           <input type="text" id="det-a" placeholder="2504.19413" />
         </div>
-        <div class="form-group">
-          <label for="det-b">Paper ID B</label>
+        <div style="flex:1; min-width:140px;">
+          <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono); margin-bottom:6px;">Paper B ID</div>
           <input type="text" id="det-b" placeholder="2501.13956" />
         </div>
-        <div class="form-group" style="flex:0;justify-content:flex-end;padding-top:1.4rem">
-          <button id="det-btn" onclick="runDetect()">Detect</button>
-        </div>
+        <button id="det-btn" class="btn-primary" onclick="runDetect()">Detect</button>
       </div>
       <div class="banner" id="det-banner"></div>
     </div>
-  </section>
+  </div>
 
   <!-- ═══ SECTION 2: QUERY ══════════════════════════════════════════════════ -->
-  <section class="card">
-    <h2 class="section-header">&#128269; Query the Knowledge Graph</h2>
+  <div class="card">
+    <h2 style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.1em; border-bottom:1px solid var(--border); padding-bottom:12px; margin-bottom:16px; font-weight:500;">Query the Knowledge Graph</h2>
 
-    <div class="form-group">
-      <label for="q-question">Question</label>
-      <textarea id="q-question" placeholder="What do the papers say about graph memory versus vector memory?"></textarea>
+    <div style="position:relative;">
+      <textarea id="question-input"
+          placeholder="Ask across all papers… e.g. What do papers say about graph memory versus vector memory?"
+          style="
+              width:100%; box-sizing:border-box;
+              background:var(--bg-tertiary); border:1px solid var(--border);
+              border-radius:8px; padding:14px 90px 14px 16px;
+              color:var(--text-primary); font-family:var(--font-sans);
+              font-size:0.85rem; line-height:1.5; resize:none; height:80px; outline:none;
+              transition:border-color 0.15s;
+          "
+          onfocus="this.style.borderColor='var(--border-bright)'"
+          onblur="this.style.borderColor='var(--border)'"
+      ></textarea>
+      <button id="q-btn" onclick="runQuery()" style="
+          position:absolute; right:12px; bottom:12px;
+          background:var(--accent); border:none; border-radius:6px;
+          padding:6px 14px; color:white; font-family:var(--font-mono);
+          font-size:0.75rem; font-weight:600; cursor:pointer; transition:opacity 0.15s;
+      ">Ask →</button>
     </div>
 
-    <div class="radio-group">
-      <label><input type="radio" name="smode" value="GRAPH_COMPLETION" checked /> Graph Completion</label>
-      <label><input type="radio" name="smode" value="SUMMARIES" /> Summaries</label>
-      <label><input type="radio" name="smode" value="RAG_COMPLETION" /> RAG Completion</label>
+    <div id="mode-pills" style="display:flex; gap:6px; margin-top:10px; flex-wrap:wrap;">
+      <label class="mode-pill active" onclick="setPill(this)"><input type="radio" name="search_mode" value="GRAPH_COMPLETION" checked> Graph Completion</label>
+      <label class="mode-pill"        onclick="setPill(this)"><input type="radio" name="search_mode" value="SUMMARIES"> Summaries</label>
+      <label class="mode-pill"        onclick="setPill(this)"><input type="radio" name="search_mode" value="RAG_COMPLETION"> RAG Completion</label>
     </div>
 
-    <button id="q-btn" onclick="runQuery()">Ask</button>
+    <div id="q-spin" style="display:none; padding:10px 0; font-family:var(--font-mono); font-size:0.8rem; color:var(--text-dim);">
+      <span class="spinner"></span>Querying knowledge graph…
+    </div>
 
-    <div class="spin-wrap" id="q-spin"><div class="spinner"></div></div>
-    <div class="answer-box" id="answer-box"></div>
-    <div class="source-cards" id="source-cards"></div>
+    <div id="answer-box" class="md" style="
+        margin-top:16px; background:var(--bg-tertiary);
+        border:1px solid var(--border); border-left:2px solid var(--accent);
+        border-radius:0 8px 8px 0; padding:20px;
+        font-family:var(--font-sans); font-size:0.85rem; line-height:1.7;
+        color:var(--text-secondary); min-height:60px; display:none;
+    "></div>
+
+    <div id="source-cards" style="margin-top:12px;"></div>
     <div class="banner error" id="q-error"></div>
-  </section>
+  </div>
 
-  <!-- ═══ SECTION 3: INGEST ═══════════════════════════════════════════════ -->
-  <section class="card">
-    <h2 class="section-header">&#128229; Ingest Papers</h2>
+  <!-- ═══ SECTION 3: INGEST ════════════════════════════════════════════════ -->
+  <div class="card" style="border-style:dashed; opacity:0.85;">
+    <h2 style="font-family:var(--font-mono); font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:16px; font-weight:500;">Ingest New Papers</h2>
 
-    <div class="form-row">
-      <div class="form-group" style="flex:3">
-        <label for="q-query">arXiv Search Query</label>
+    <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;">
+      <div style="flex:3; min-width:180px;">
+        <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono); margin-bottom:6px;">arXiv Search Query</div>
         <input type="text" id="q-query" placeholder="agent memory knowledge graph" />
       </div>
-      <div class="form-group" style="flex:1">
-        <label for="q-max">Max Papers</label>
+      <div style="flex:1; min-width:90px;">
+        <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono); margin-bottom:6px;">Max Papers</div>
         <input type="number" id="q-max" value="20" min="1" max="100" />
       </div>
-      <div class="form-group" style="flex:1">
-        <label for="q-domain">Domain Tag (optional)</label>
+      <div style="flex:1; min-width:90px;">
+        <div style="font-size:0.7rem; color:var(--text-dim); font-family:var(--font-mono); margin-bottom:6px;">Domain (optional)</div>
         <input type="text" id="q-domain" placeholder="cs.AI" />
       </div>
     </div>
 
-    <div style="display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap">
-      <button id="ingest-btn" onclick="startIngest()">Start Ingestion</button>
-      <button class="secondary" onclick="window.open('/graph/visualise','_blank')">View Knowledge Graph &#8599;</button>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <button id="ingest-btn" class="btn-primary" onclick="startIngest()">Start Ingestion</button>
+      <button class="btn-secondary" onclick="window.open('/graph/visualise','_blank')">View Knowledge Graph ↗</button>
     </div>
 
-    <div class="progress-wrap" id="progress-wrap">
-      <div class="progress-meta">
-        <span class="progress-msg" id="progress-msg">Starting&hellip;</span>
-        <span class="progress-msg" id="progress-pct">0%</span>
+    <div id="progress-wrap" style="margin-top:14px; display:none;">
+      <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+        <span style="font-size:0.75rem; color:var(--text-dim); font-family:var(--font-mono);" id="progress-msg">Starting…</span>
+        <span style="font-size:0.75rem; color:var(--text-dim); font-family:var(--font-mono);" id="progress-pct">0%</span>
       </div>
-      <div class="progress-bar-outer">
-        <div class="progress-bar-inner" id="progress-bar"></div>
-      </div>
+      <div class="progress-bar-outer"><div class="progress-bar-inner" id="progress-bar"></div></div>
     </div>
 
-    <div class="stat-cards" id="stat-cards" style="display:none">
-      <div class="stat-card"><div class="val" id="s-papers">0</div><div class="lbl">Papers Ingested</div></div>
+    <div class="stat-cards" id="stat-cards" style="display:none;">
+      <div class="stat-card"><div class="val" id="s-papers">0</div><div class="lbl">Papers</div></div>
       <div class="stat-card"><div class="val" id="s-entities">0</div><div class="lbl">Entities</div></div>
       <div class="stat-card"><div class="val" id="s-edges">0</div><div class="lbl">Edges</div></div>
     </div>
 
     <div class="banner error" id="ingest-error"></div>
-  </section>
+  </div>
 
 </main>
 
 <script>
-/* ─── Utilities ─────────────────────────────────────────────────────────── */
+/* ─── Markdown helper ─────────────────────────────────────────────────────── *
+ * LLM answers can contain literal backslash-n sequences (not real newlines).
+ * Pre-process them before passing to marked.parse().
+ */
+function md(text) {
+  if (!text) return '';
+  var s = String(text)
+    .replace(/\\n/g, '\n')      // literal \n → real newline
+    .replace(/\\t/g, '\t');     // literal \t → tab
+  if (typeof marked !== 'undefined') {
+    try { return marked.parse(s); } catch(_) {}
+  }
+  // Fallback: basic HTML escape + newline-to-br
+  return s
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g,'<em>$1</em>')
+    .replace(/\n/g,'<br>');
+}
 
+/* ─── Badge / confidence bar ────────────────────────────────────────────────  */
+function makeBadge(label) {
+  var map = {
+    contradicts: ['var(--contradicts)', 'rgba(229,62,62,0.12)',  'CONTRADICTS'],
+    supports:    ['var(--supports)',    'rgba(56,161,105,0.12)', 'SUPPORTS'],
+    extends:     ['var(--extends)',     'rgba(66,153,225,0.12)', 'EXTENDS'],
+    unrelated:   ['var(--unrelated)',   'rgba(113,128,150,0.12)','UNRELATED'],
+  };
+  var e = map[label] || map.unrelated;
+  return '<span style="display:inline-block;background:'+e[1]+';color:'+e[0]
+    +';border:1px solid '+e[0]+'40;border-radius:4px;font-family:var(--font-mono)'
+    +';font-size:0.65rem;font-weight:600;letter-spacing:0.06em;padding:3px 8px;">'+e[2]+'</span>';
+}
+
+function makeConfBar(conf) {
+  var pct = Math.round(conf * 100);
+  var col = pct >= 90 ? 'var(--supports)' : pct >= 70 ? 'var(--accent)' : 'var(--unrelated)';
+  return '<div style="display:flex;align-items:center;gap:6px;">'
+    +'<div style="width:48px;height:3px;background:var(--border);border-radius:2px;">'
+    +'<div style="width:'+pct+'%;height:100%;background:'+col+';border-radius:2px;"></div></div>'
+    +'<span style="font-family:var(--font-mono);font-size:0.72rem;color:var(--text-secondary)">'+pct+'%</span>'
+    +'</div>';
+}
+
+/* ─── Utilities ──────────────────────────────────────────────────────────── */
 function showBanner(id, msg, type) {
   var el = document.getElementById(id);
-  el.textContent = msg;
-  el.className = 'banner ' + (type || 'error');
-  el.style.display = 'block';
+  el.textContent = msg; el.className = 'banner '+(type||'error'); el.style.display = 'block';
 }
-function hideBanner(id) {
-  var el = document.getElementById(id);
-  if (el) el.style.display = 'none';
-}
+function hideBanner(id) { var el=document.getElementById(id); if(el) el.style.display='none'; }
+
 async function apiFetch(url, opts) {
-  var res = await fetch(url, Object.assign({ headers: { 'Content-Type': 'application/json' } }, opts || {}));
-  if (!res.ok) {
-    var body = {};
-    try { body = await res.json(); } catch(_) {}
-    throw new Error(body.detail || ('HTTP ' + res.status));
-  }
+  var res = await fetch(url, Object.assign({headers:{'Content-Type':'application/json'}}, opts||{}));
+  if (!res.ok) { var b={}; try{b=await res.json()}catch(_){} throw new Error(b.detail||('HTTP '+res.status)); }
   return res.json();
 }
 
-/* IMPROVEMENT 4: Standardized badge using label-badge classes */
-function badge(label) {
-  var cls = { contradicts:'contradicts', supports:'supports', extends:'extends', unrelated:'unrelated' }[label] || 'unrelated';
-  return '<span class="label-badge label-' + cls + '">' + label + '</span>';
-}
-function badgeColor(label) {
-  return { contradicts:'#ef233c', supports:'#06d6a0', extends:'#4361ee', unrelated:'#adb5bd' }[label] || '#adb5bd';
+/* ─── Mode pills active state ────────────────────────────────────────────── */
+function setPill(clicked) {
+  document.querySelectorAll('#mode-pills .mode-pill').forEach(function(p){ p.classList.remove('active'); });
+  clicked.classList.add('active');
+  clicked.querySelector('input').checked = true;
 }
 
-/* IMPROVEMENT 5: Confidence bar */
-function confBar(conf) {
-  var pct = Math.round(conf * 100);
-  return '<div style="display:flex;align-items:center;gap:8px">'
-    + '<div style="width:60px;height:6px;background:#2a2a4a;border-radius:3px">'
-    + '<div style="width:' + pct + '%;height:100%;background:#4361ee;border-radius:3px"></div>'
-    + '</div>'
-    + '<span style="font-size:0.82rem">' + pct + '%</span>'
-    + '</div>';
-}
-
-/* ─── Section 3: Ingest ─────────────────────────────────────────────────── */
-
-var pollTimer = null;
-
-async function startIngest() {
-  hideBanner('ingest-error');
-  var query = document.getElementById('q-query').value.trim();
-  var maxP  = parseInt(document.getElementById('q-max').value, 10) || 20;
-  var tag   = document.getElementById('q-domain').value.trim() || null;
-  if (!query) { showBanner('ingest-error', 'Please enter a search query.'); return; }
-
-  var btn = document.getElementById('ingest-btn');
-  btn.disabled = true; btn.textContent = 'Starting…';
-  document.getElementById('progress-wrap').style.display = 'block';
-  document.getElementById('stat-cards').style.display = 'none';
-  setProgress(0, 'Submitting…');
-
-  try {
-    var data = await apiFetch('/ingest', {
-      method: 'POST',
-      body: JSON.stringify({ query: query, max_papers: maxP, domain_tag: tag })
-    });
-    btn.textContent = 'Running…';
-    pollIngest(data.run_id);
-  } catch(err) {
-    btn.disabled = false; btn.textContent = 'Start Ingestion';
-    document.getElementById('progress-wrap').style.display = 'none';
-    showBanner('ingest-error', 'Ingest failed: ' + err.message);
-  }
-}
-
-function setProgress(pct, msg) {
-  document.getElementById('progress-bar').style.width = pct + '%';
-  document.getElementById('progress-pct').textContent = pct + '%';
-  document.getElementById('progress-msg').textContent = msg;
-}
-
-function pollIngest(runId) {
-  clearInterval(pollTimer);
-  pollTimer = setInterval(async function() {
-    try {
-      var s = await apiFetch('/ingest/status/' + runId);
-      setProgress(s.progress_percent, s.message);
-      if (s.status === 'complete') {
-        clearInterval(pollTimer);
-        document.getElementById('ingest-btn').disabled = false;
-        document.getElementById('ingest-btn').textContent = 'Start Ingestion';
-        await showStats(s);
-        loadContradictions();
-      } else if (s.status === 'failed') {
-        clearInterval(pollTimer);
-        document.getElementById('ingest-btn').disabled = false;
-        document.getElementById('ingest-btn').textContent = 'Start Ingestion';
-        showBanner('ingest-error', 'Ingestion failed: ' + s.message);
-      }
-    } catch(err) {
-      clearInterval(pollTimer);
-      showBanner('ingest-error', 'Status poll failed: ' + err.message);
-    }
-  }, 3000);
-}
-
-async function showStats(statusData) {
-  var entities = '—', edges = '—';
-  try {
-    var stats = await apiFetch('/graph/stats');
-    entities = stats.entity_count != null ? stats.entity_count : '—';
-    edges    = stats.edge_count   != null ? stats.edge_count   : '—';
-  } catch(_) {}
-  document.getElementById('s-papers').textContent   = statusData.papers_fetched != null ? statusData.papers_fetched : '—';
-  document.getElementById('s-entities').textContent = entities;
-  document.getElementById('s-edges').textContent    = edges;
-  document.getElementById('stat-cards').style.display = 'flex';
-}
-
-/* ─── Section 1: Contradictions ─────────────────────────────────────────── */
-
+/* ─── Contradiction table ────────────────────────────────────────────────── */
 var allContradictions = [];
-var openRowIdx = null;
 
-async function loadContradictions() {
-  var conf = parseFloat(document.getElementById('conf-slider').value);
-  var tbody = document.getElementById('c-body');
-  tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">Loading…</div></td></tr>';
-  closeCompare();
-  try {
-    var data = await apiFetch('/contradictions?min_confidence=' + conf + '&limit=20');
-    allContradictions = data.contradictions || [];
-    renderTable(allContradictions);
-  } catch(err) {
-    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state" style="color:#ef233c">Failed: ' + err.message + '</div></td></tr>';
-  }
+function renderRow(pair) {
+  var div = document.createElement('div');
+  div.className = 'c-row';
+  var expl = (pair.explanation && pair.explanation.trim())
+    ? (pair.explanation.length > 120 ? pair.explanation.substring(0,120)+'…' : pair.explanation)
+    : null;
+  div.innerHTML =
+      '<span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--accent)">'+pair.paper_id_a+'</span>'
+    + '<span style="font-family:var(--font-mono);font-size:0.78rem;color:var(--text-secondary)">'+pair.paper_id_b+'</span>'
+    + '<span>'+makeBadge(pair.label)+'</span>'
+    + '<span>'+makeConfBar(pair.confidence)+'</span>'
+    + '<span style="font-size:0.78rem;color:var(--text-secondary);font-family:var(--font-sans);line-height:1.4;">'
+    + (expl ? md(expl) : '<em style="color:var(--text-dim)">Click to surface analysis</em>')
+    + '</span>';
+  div.onclick = function(){ openOverlay(pair.paper_id_a, pair.paper_id_b); };
+  return div;
+}
+
+function updateEvidenceChips(pairs) {
+  var c={contradicts:0,supports:0,extends:0};
+  (pairs||[]).forEach(function(p){ if(c[p.label]!==undefined) c[p.label]++; });
+  document.getElementById('ev-contradicts').textContent = c.contradicts+' conflict'+(c.contradicts!==1?'s':'');
+  document.getElementById('ev-supports').textContent    = c.supports+' supporting';
+  document.getElementById('ev-extends').textContent     = c.extends+' extension'+(c.extends!==1?'s':'');
 }
 
 function renderTable(pairs) {
-  var tbody = document.getElementById('c-body');
+  var tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
   if (!pairs || pairs.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">No contradictions detected yet. Ingest papers first.</div></td></tr>';
+    tbody.innerHTML = '<div class="empty-state">No contradictions above threshold. Ingest papers first.</div>';
     return;
   }
-  var html = '';
-  pairs.forEach(function(p, i) {
-    /* IMPROVEMENT 3C: fill empty explanations with italic hint; render real ones as markdown */
-    var explanationHtml = (p.explanation && p.explanation.trim())
-      ? marked.parse(p.explanation)
-      : '<em style="color:#6c757d">Click row to see analysis</em>';
-    /* IMPROVEMENT 2: contradiction-row for hover/active states */
-    html += '<tr class="data-row contradiction-row" data-idx="' + i + '" onclick="onRowClick(' + i + ',this)">'
-      + '<td style="font-family:monospace;font-size:0.82rem">' + p.paper_id_a + '</td>'
-      + '<td style="font-family:monospace;font-size:0.82rem">' + p.paper_id_b + '</td>'
-      + '<td>' + badge(p.label) + '</td>'
-      + '<td>' + confBar(p.confidence) + '</td>'  /* IMPROVEMENT 5 */
-      + '<td style="color:var(--text-muted);max-width:280px;font-size:0.82rem">' + explanationHtml + '</td>'
-      + '</tr>'
-      + '<tr class="compare-row" id="cr-' + i + '">'
-      + '<td colspan="5" style="padding:0">'
-      + '<div class="compare-panel" id="cp-' + i + '">'
-      + '<div class="compare-header">'
-      + '<span>Comparing <code>' + p.paper_id_a + '</code> vs <code>' + p.paper_id_b + '</code></span>'
-      + '<button class="close-btn" onclick="closeCompare(event)">&times;</button>'
-      + '</div>'
-      + '<div class="compare-cols">'
-      + '<div class="compare-col flat-col">'
-      + '<div class="compare-col-head">Single-paper RAG</div>'
-      + '<div class="compare-col-sub">One paper. No context.</div>'
-      + '<div class="compare-answer" id="flat-' + i + '"><span class="mini-spin"></span> Fetching…</div>'
-      + '</div>'
-      + '<div class="compare-col cs-col chronoscholar-panel" id="cs-col-' + i + '">'
-      + '<div class="compare-col-head">ChronoScholar</div>'
-      + '<div class="compare-col-sub">Cross-paper synthesis. Contradiction surfaced.</div>'
-      + '<div class="compare-answer" id="cs-' + i + '"><span class="mini-spin"></span> Synthesising…</div>'
-      + '</div>'
-      + '</div>'
-      + '</div>'
-      + '</td></tr>';
-  });
-  tbody.innerHTML = html;
+  pairs.forEach(function(p){ tbody.appendChild(renderRow(p)); });
 }
 
-/* IMPROVEMENT 2: active class instead of selected */
-function onRowClick(idx, tr) {
-  if (openRowIdx === idx) { closeCompare(); return; }
-  closeCompare();
-  tr.classList.add('active');
-  openRowIdx = idx;
-  document.getElementById('cr-' + idx).style.display = 'table-row';
-  var p = allContradictions[idx];
-  var q = 'What are the key findings of each paper and how do they compare?';
-  fetchCompare(idx, p.paper_id_a, p.paper_id_b, q);
-}
-
-function closeCompare(evt) {
-  if (evt) evt.stopPropagation();
-  if (openRowIdx !== null) {
-    var cr = document.getElementById('cr-' + openRowIdx);
-    if (cr) cr.style.display = 'none';
-    document.querySelectorAll('#c-body tr.contradiction-row').forEach(function(r) { r.classList.remove('active'); });
-    openRowIdx = null;
-  }
-}
-
-async function fetchCompare(idx, pidA, pidB, question) {
+async function loadContradictions() {
+  var conf = parseFloat(document.getElementById('conf-slider').value);
+  document.getElementById('table-body').innerHTML = '<div class="empty-state">Loading…</div>';
   try {
-    var data = await apiFetch('/compare', {
-      method: 'POST',
-      body: JSON.stringify({ paper_id_a: pidA, paper_id_b: pidB, question: question })
-    });
-
-    /* Flat RAG — immediate, rendered as markdown */
-    var flatEl = document.getElementById('flat-' + idx);
-    if (flatEl) flatEl.innerHTML = marked.parse((data.flat_rag && data.flat_rag.answer) ? data.flat_rag.answer : 'No answer returned.');
-
-    /* ChronoScholar — fade in after 1 s, rendered as markdown */
-    setTimeout(function() {
-      var csEl  = document.getElementById('cs-' + idx);
-      var csCol = document.getElementById('cs-col-' + idx);
-      if (!csEl || !csCol) return;
-      var cs = data.chronoscholar;
-      var csAnswerHtml = (cs && cs.answer) ? marked.parse(cs.answer) : '<em>No synthesis available.</em>';
-      if (cs && cs.contradiction) {
-        var c = cs.contradiction;
-        csAnswerHtml += '<div class="contradiction-inline">'
-          + badge(c.label) + ' Confidence: ' + Math.round(c.confidence * 100) + '%'
-          + '<small style="display:block;margin-top:0.5rem;color:var(--text-muted)">' + marked.parse(c.explanation || '') + '</small>'
-          + '</div>';
-      }
-      csEl.innerHTML = csAnswerHtml;
-      csCol.classList.add('visible');
-    }, 1000);
-
+    var data = await apiFetch('/contradictions?min_confidence='+conf+'&limit=20');
+    allContradictions = data.contradictions || [];
+    updateEvidenceChips(allContradictions);
+    renderTable(allContradictions);
   } catch(err) {
-    var flatEl = document.getElementById('flat-' + idx);
-    if (flatEl) flatEl.textContent = 'Error: ' + err.message;
-    var csEl  = document.getElementById('cs-' + idx);
-    var csCol = document.getElementById('cs-col-' + idx);
-    if (csEl)  { csEl.textContent = 'Error: ' + err.message; }
-    if (csCol) { csCol.classList.add('visible'); }
+    document.getElementById('table-body').innerHTML =
+      '<div class="empty-state" style="color:var(--contradicts)">Error: '+err.message+'</div>';
   }
 }
 
+/* ─── Full-screen overlay ────────────────────────────────────────────────── */
+function openOverlay(paperA, paperB) {
+  var overlay = document.getElementById('compare-overlay');
+  overlay.style.display = 'flex';
+  requestAnimationFrame(function(){ overlay.style.opacity = '1'; });
+
+  document.getElementById('ov-paper-a').textContent   = paperA;
+  document.getElementById('ov-paper-b').textContent   = paperB;
+  document.getElementById('ov-label-badge').innerHTML = '';
+  document.getElementById('ov-flat').innerHTML        = '<span style="color:var(--text-dim);font-family:var(--font-mono);font-size:0.8rem;">fetching…</span>';
+  document.getElementById('ov-cs-answer').innerHTML   = '';
+  document.getElementById('ov-contradiction-card').style.display = 'none';
+  document.getElementById('ov-cs-panel').style.opacity = '0';
+
+  fetch('/compare', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ paper_id_a:paperA, paper_id_b:paperB,
+                           question:'What are the central claims of these papers?' })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    document.getElementById('ov-flat').innerHTML =
+      md((data.flat_rag && data.flat_rag.answer) ? data.flat_rag.answer : 'No content found.');
+
+    setTimeout(function() {
+      document.getElementById('ov-cs-answer').innerHTML =
+        md((data.chronoscholar && data.chronoscholar.answer) ? data.chronoscholar.answer : '');
+
+      var c = data.chronoscholar && data.chronoscholar.contradiction;
+      if (c) {
+        document.getElementById('ov-label-badge').innerHTML = makeBadge(c.label);
+        document.getElementById('ov-badge').innerHTML       = makeBadge(c.label);
+        document.getElementById('ov-conf').textContent      = Math.round(c.confidence*100)+'%';
+        document.getElementById('ov-explanation').innerHTML = md(c.explanation||'');
+        document.getElementById('ov-contradiction-card').style.display = 'block';
+      }
+      document.getElementById('ov-cs-panel').style.opacity = '1';
+    }, 1200);
+  })
+  .catch(function(){ document.getElementById('ov-flat').textContent = 'Error loading comparison.'; });
+}
+
+function closeOverlay() {
+  var overlay = document.getElementById('compare-overlay');
+  overlay.style.opacity = '0';
+  setTimeout(function(){ overlay.style.display = 'none'; }, 250);
+}
+document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeOverlay(); });
+
+/* ─── Manual detect ──────────────────────────────────────────────────────── */
 async function runDetect() {
   hideBanner('det-banner');
-  var a = document.getElementById('det-a').value.trim();
-  var b = document.getElementById('det-b').value.trim();
-  if (!a || !b) { showBanner('det-banner', 'Both paper IDs required.'); return; }
-  if (a === b)  { showBanner('det-banner', 'Paper IDs must be different.'); return; }
-  var btn = document.getElementById('det-btn');
-  btn.disabled = true; btn.textContent = 'Detecting…';
+  var a=document.getElementById('det-a').value.trim();
+  var b=document.getElementById('det-b').value.trim();
+  if(!a||!b){showBanner('det-banner','Both paper IDs required.');return;}
+  if(a===b){showBanner('det-banner','Paper IDs must be different.');return;}
+  var btn=document.getElementById('det-btn');
+  btn.disabled=true; btn.textContent='Detecting…';
   try {
-    var r = await apiFetch('/detect', { method: 'POST', body: JSON.stringify({ paper_id_a: a, paper_id_b: b }) });
+    var r=await apiFetch('/detect',{method:'POST',body:JSON.stringify({paper_id_a:a,paper_id_b:b})});
     allContradictions.unshift(r);
+    updateEvidenceChips(allContradictions);
     renderTable(allContradictions);
-    showBanner('det-banner', 'Detected: ' + r.label + ' (' + Math.round(r.confidence*100) + '% confidence)', 'success');
-  } catch(err) {
-    showBanner('det-banner', 'Detection failed: ' + err.message);
+    showBanner('det-banner','Detected: '+r.label+' ('+Math.round(r.confidence*100)+'% confidence)','success');
+  } catch(err){ showBanner('det-banner','Detection failed: '+err.message); }
+  finally { btn.disabled=false; btn.textContent='Detect'; }
+}
+
+/* ─── Query ──────────────────────────────────────────────────────────────── */
+async function runQuery() {
+  hideBanner('q-error');
+  var question=(document.getElementById('question-input').value||'').trim();
+  if(!question){showBanner('q-error','Please enter a question.');return;}
+  var mode=(document.querySelector('input[name="search_mode"]:checked')||{}).value||'GRAPH_COMPLETION';
+
+  var btn=document.getElementById('q-btn');
+  btn.disabled=true; btn.textContent='…';
+  document.getElementById('q-spin').style.display='block';
+  document.getElementById('source-cards').innerHTML='';
+
+  var ab=document.getElementById('answer-box');
+  ab.innerHTML='<span class="loading" style="font-family:var(--font-mono);font-size:0.8rem;">Querying…</span>';
+  ab.style.display='block';
+
+  try {
+    var data=await apiFetch('/query',{method:'POST',body:JSON.stringify({question:question,search_mode:mode,max_results:5})});
+    var ans=(data.answer||'No answer returned.').replace(/^\[['"]|['"]\]$/g,'').trim();
+    ab.innerHTML=md(ans);
+
+    var sc=document.getElementById('source-cards');
+    if(data.sources&&data.sources.length){
+      sc.innerHTML=data.sources.map(function(s){
+        return '<div class="source-card">'
+          +'<div class="sc-id">['+s.paper_id+']</div>'
+          +'<div class="sc-title">'+s.title+'</div>'
+          +'<div class="sc-date">'+s.published_date+'</div>'
+          +'<div class="sc-excerpt">'+s.excerpt+'</div>'
+          +'</div>';
+      }).join('');
+    }
+  } catch(err){
+    ab.style.display='none';
+    showBanner('q-error','Query failed: '+err.message);
   } finally {
-    btn.disabled = false; btn.textContent = 'Detect';
+    btn.disabled=false; btn.textContent='Ask →';
+    document.getElementById('q-spin').style.display='none';
   }
 }
 
-/* ─── Section 2: Query ───────────────────────────────────────────────────── */
+/* ─── Ingest ─────────────────────────────────────────────────────────────── */
+var pollTimer=null;
 
-async function runQuery() {
-  hideBanner('q-error');
-  var question = document.getElementById('q-question').value.trim();
-  if (!question) { showBanner('q-error', 'Please enter a question.'); return; }
-  var mode = (document.querySelector('input[name="smode"]:checked') || {}).value || 'GRAPH_COMPLETION';
+async function startIngest() {
+  hideBanner('ingest-error');
+  var query=document.getElementById('q-query').value.trim();
+  var maxP=parseInt(document.getElementById('q-max').value,10)||20;
+  var tag=document.getElementById('q-domain').value.trim()||null;
+  if(!query){showBanner('ingest-error','Please enter a search query.');return;}
 
-  var btn = document.getElementById('q-btn');
-  btn.disabled = true; btn.textContent = 'Asking…';
-  document.getElementById('q-spin').style.display = 'block';
-  document.getElementById('source-cards').innerHTML = '';
-
-  /* IMPROVEMENT 6: pulse while in-flight */
-  var ab = document.getElementById('answer-box');
-  ab.textContent = 'Thinking…';
-  ab.classList.add('loading');
-  ab.style.display = 'block';
+  var btn=document.getElementById('ingest-btn');
+  btn.disabled=true; btn.textContent='Starting…';
+  document.getElementById('progress-wrap').style.display='block';
+  document.getElementById('stat-cards').style.display='none';
+  setProgress(0,'Submitting…');
 
   try {
-    var data = await apiFetch('/query', {
-      method: 'POST',
-      body: JSON.stringify({ question: question, search_mode: mode, max_results: 5 })
-    });
-    var ans = (data.answer || 'No answer returned.').replace(/^\[['"]|['"]\]$/g, '').trim();
-    ab.classList.remove('loading');
-    ab.innerHTML = marked.parse(ans);
-
-    var sc = document.getElementById('source-cards');
-    if (data.sources && data.sources.length) {
-      sc.innerHTML = data.sources.map(function(s) {
-        return '<div class="source-card">'
-          + '<div class="sc-id">[' + s.paper_id + ']</div>'
-          + '<div class="sc-title">' + s.title + '</div>'
-          + '<div class="sc-date">' + s.published_date + '</div>'
-          + '<div class="sc-excerpt">' + s.excerpt + '</div>'
-          + '</div>';
-      }).join('');
-    }
-  } catch(err) {
-    ab.classList.remove('loading');
-    ab.style.display = 'none';
-    showBanner('q-error', 'Query failed: ' + err.message);
-  } finally {
-    btn.disabled = false; btn.textContent = 'Ask';
-    document.getElementById('q-spin').style.display = 'none';
+    var data=await apiFetch('/ingest',{method:'POST',body:JSON.stringify({query:query,max_papers:maxP,domain_tag:tag})});
+    btn.textContent='Running…';
+    pollIngest(data.run_id);
+  } catch(err){
+    btn.disabled=false; btn.textContent='Start Ingestion';
+    document.getElementById('progress-wrap').style.display='none';
+    showBanner('ingest-error','Ingest failed: '+err.message);
   }
+}
+
+function setProgress(pct,msg){
+  document.getElementById('progress-bar').style.width=pct+'%';
+  document.getElementById('progress-pct').textContent=pct+'%';
+  document.getElementById('progress-msg').textContent=msg;
+}
+
+function pollIngest(runId){
+  clearInterval(pollTimer);
+  pollTimer=setInterval(async function(){
+    try {
+      var s=await apiFetch('/ingest/status/'+runId);
+      setProgress(s.progress_percent,s.message);
+      if(s.status==='complete'){
+        clearInterval(pollTimer);
+        document.getElementById('ingest-btn').disabled=false;
+        document.getElementById('ingest-btn').textContent='Start Ingestion';
+        await showStats(s); loadContradictions();
+      } else if(s.status==='failed'){
+        clearInterval(pollTimer);
+        document.getElementById('ingest-btn').disabled=false;
+        document.getElementById('ingest-btn').textContent='Start Ingestion';
+        showBanner('ingest-error','Ingestion failed: '+s.message);
+      }
+    } catch(err){ clearInterval(pollTimer); showBanner('ingest-error','Poll failed: '+err.message); }
+  },3000);
+}
+
+async function showStats(statusData){
+  var entities='—',edges='—';
+  try{
+    var stats=await apiFetch('/graph/stats');
+    entities=stats.entity_count!=null?stats.entity_count:'—';
+    edges=stats.edge_count!=null?stats.edge_count:'—';
+  }catch(_){}
+  document.getElementById('s-papers').textContent=statusData.papers_fetched!=null?statusData.papers_fetched:'—';
+  document.getElementById('s-entities').textContent=entities;
+  document.getElementById('s-edges').textContent=edges;
+  document.getElementById('stat-cards').style.display='flex';
 }
 
 /* ─── Init ───────────────────────────────────────────────────────────────── */
-
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function(){
   loadContradictions();
   fetch('/graph/stats')
-    .then(function(r) { return r.json(); })
-    .then(function(d) {
-      document.getElementById('stat-papers').textContent = d.paper_count || '10';
-      document.getElementById('stat-entities').textContent = d.entity_count || '118';
-      document.getElementById('stat-edges').textContent = d.edge_count || '203';
+    .then(function(r){return r.json();})
+    .then(function(d){
+      document.getElementById('stat-papers').textContent  =d.paper_count ||'10';
+      document.getElementById('stat-entities').textContent=d.entity_count||'118';
+      document.getElementById('stat-edges').textContent   =d.edge_count  ||'203';
     })
-    .catch(function() {
-      document.getElementById('stat-papers').textContent = '10';
-      document.getElementById('stat-entities').textContent = '118';
-      document.getElementById('stat-edges').textContent = '203';
+    .catch(function(){
+      document.getElementById('stat-papers').textContent  ='10';
+      document.getElementById('stat-entities').textContent='118';
+      document.getElementById('stat-edges').textContent   ='203';
     });
 });
 </script>
