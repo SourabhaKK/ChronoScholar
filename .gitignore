@@ -228,9 +228,21 @@ PROMPTS.md
 BENCHMARK.md
 SESSIONS.md
 
+# Blog / draft content — local only
+docs/blog_post.md
+
 # Runtime data
 data/cognee.db
 data/vectors/
 data/predictions.json
 data/compare_cache.json
+data/cognee_system/
+# Cognee staging files generated during cognify() — not source files
+data/text_*.txt
+# UUID-named directories Cognee creates for intermediate data
+data/????????-????-????-????-????????????/
 mlflow_tracking/
+
+# OS artifacts
+.DS_Store
+Thumbs.db
