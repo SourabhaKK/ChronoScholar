@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChronoScholar</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -278,7 +279,10 @@
     .radio-group { display: flex; gap: 1.25rem; flex-wrap: wrap; margin: 0.6rem 0 1rem; }
     .radio-group label { display: flex; align-items: center; gap: 0.4rem; font-size: 0.88rem; cursor: pointer; }
     input[type="radio"] { accent-color: var(--accent); }
-    .answer-box { background: var(--surface2); border-radius: var(--radius); padding: 1rem; margin-top: 1rem; font-size: 0.9rem; line-height: 1.65; min-height: 60px; white-space: pre-wrap; display: none; }
+    .answer-box { background: var(--surface2); border-radius: var(--radius); padding: 1rem; margin-top: 1rem; font-size: 0.9rem; line-height: 1.65; min-height: 60px; white-space: normal; display: none; }
+    .answer-box p { margin: 0 0 10px 0; }
+    .answer-box strong { color: #ffffff; }
+    .answer-box em { color: #adb5bd; }
     .source-cards { display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.75rem; }
     .source-card { background: var(--surface2); border: 1px solid rgba(255,255,255,0.08); border-radius: var(--radius); padding: 0.6rem 0.9rem; font-size: 0.82rem; }
     .source-card .sc-id { color: var(--accent); font-weight: 600; font-family: monospace; }
@@ -575,9 +579,9 @@ function renderTable(pairs) {
   }
   var html = '';
   pairs.forEach(function(p, i) {
-    /* IMPROVEMENT 3C: fill empty explanations with italic hint */
-    var explanation = (p.explanation && p.explanation.trim())
-      ? p.explanation
+    /* IMPROVEMENT 3C: fill empty explanations with italic hint; render real ones as markdown */
+    var explanationHtml = (p.explanation && p.explanation.trim())
+      ? marked.parse(p.explanation)
       : '<em style="color:#6c757d">Click row to see analysis</em>';
     /* IMPROVEMENT 2: contradiction-row for hover/active states */
     html += '<tr class="data-row contradiction-row" data-idx="' + i + '" onclick="onRowClick(' + i + ',this)">'
@@ -585,7 +589,7 @@ function renderTable(pairs) {
       + '<td style="font-family:monospace;font-size:0.82rem">' + p.paper_id_b + '</td>'
       + '<td>' + badge(p.label) + '</td>'
       + '<td>' + confBar(p.confidence) + '</td>'  /* IMPROVEMENT 5 */
-      + '<td style="color:var(--text-muted);max-width:280px;font-size:0.82rem">' + explanation + '</td>'
+      + '<td style="color:var(--text-muted);max-width:280px;font-size:0.82rem">' + explanationHtml + '</td>'
       + '</tr>'
       + '<tr class="compare-row" id="cr-' + i + '">'
       + '<td colspan="5" style="padding:0">'
@@ -641,26 +645,25 @@ async function fetchCompare(idx, pidA, pidB, question) {
       body: JSON.stringify({ paper_id_a: pidA, paper_id_b: pidB, question: question })
     });
 
-    /* Flat RAG — immediate */
+    /* Flat RAG — immediate, rendered as markdown */
     var flatEl = document.getElementById('flat-' + idx);
-    if (flatEl) flatEl.textContent = (data.flat_rag && data.flat_rag.answer) ? data.flat_rag.answer : 'No answer returned.';
+    if (flatEl) flatEl.innerHTML = marked.parse((data.flat_rag && data.flat_rag.answer) ? data.flat_rag.answer : 'No answer returned.');
 
-    /* ChronoScholar — fade in after 1 s */
+    /* ChronoScholar — fade in after 1 s, rendered as markdown */
     setTimeout(function() {
       var csEl  = document.getElementById('cs-' + idx);
       var csCol = document.getElementById('cs-col-' + idx);
       if (!csEl || !csCol) return;
       var cs = data.chronoscholar;
-      var html = (cs && cs.answer) ? cs.answer : 'No synthesis available.';
+      var csAnswerHtml = (cs && cs.answer) ? marked.parse(cs.answer) : '<em>No synthesis available.</em>';
       if (cs && cs.contradiction) {
         var c = cs.contradiction;
-        /* IMPROVEMENT 3: contradiction-inline uses CSS class, badge uses label-badge */
-        html += '<div class="contradiction-inline">'
+        csAnswerHtml += '<div class="contradiction-inline">'
           + badge(c.label) + ' Confidence: ' + Math.round(c.confidence * 100) + '%'
-          + '<small style="display:block;margin-top:0.5rem;color:var(--text-muted)">' + (c.explanation || '') + '</small>'
+          + '<small style="display:block;margin-top:0.5rem;color:var(--text-muted)">' + marked.parse(c.explanation || '') + '</small>'
           + '</div>';
       }
-      csEl.innerHTML = html;
+      csEl.innerHTML = csAnswerHtml;
       csCol.classList.add('visible');
     }, 1000);
 
@@ -720,7 +723,7 @@ async function runQuery() {
     });
     var ans = (data.answer || 'No answer returned.').replace(/^\[['"]|['"]\]$/g, '').trim();
     ab.classList.remove('loading');
-    ab.textContent = ans;
+    ab.innerHTML = marked.parse(ans);
 
     var sc = document.getElementById('source-cards');
     if (data.sources && data.sources.length) {

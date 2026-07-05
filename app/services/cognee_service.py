@@ -177,4 +177,22 @@ class CogneeService:
         from pyvis.network import Network
 
         net = Network(height="600px", width="100%")
-        return net.generate_html()
+        html = net.generate_html()
+
+        dark_override = """
+  <style>
+    body, html {
+      background-color: #1a1a2e !important;
+      color: #ffffff !important;
+      margin: 0;
+      padding: 0;
+    }
+    #mynetwork {
+      background-color: #16213e !important;
+      border: 1px solid #2a2a4a !important;
+      border-radius: 8px;
+    }
+  </style>
+"""
+        html = html.replace("</head>", dark_override + "</head>")
+        return html
