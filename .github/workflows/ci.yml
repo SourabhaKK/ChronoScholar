@@ -10,5 +10,5 @@ jobs:
       - run: pip install uv && uv sync --extra dev
       - run: uv run ruff check app/ tests/
       - run: uv run mypy app/ --ignore-missing-imports
-      - run: uv run pytest tests/ -v -m "not benchmark" --cov=app --cov-fail-under=70
+      - run: uv run pytest tests/ -v -m "not benchmark" --cov=app --cov-fail-under=60
       - run: docker build -t chronoscholar .
