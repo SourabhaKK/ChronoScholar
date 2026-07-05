@@ -112,6 +112,7 @@ ArxivService.fetch() ──► CogneeService.cognify() ──► Knowledge Graph
 | True positives | 4 |
 | False positives | 0 |
 | False negatives | 0 |
+| Detection model | Gemini 2.5 Flash |
 
 > **Statistical caveat:** Benchmark is a pilot evaluation (n=10,
 > 4 positive examples). Results are directional only. Sample size
@@ -123,11 +124,11 @@ ArxivService.fetch() ──► CogneeService.cognify() ──► Knowledge Graph
 
 Three providers with distinct roles to eliminate TPM contention:
 
-| Role | Provider | Reason |
+| Role | Provider | Model |
 |---|---|---|
-| Application LLM (detect, query grounding) | Gemini 2.5 Flash | Scientific NLI accuracy, 1M TPM free tier |
-| Cognee internal (entity extraction, synthesis) | GPT-4o-mini | Reliable structured output, sufficient context |
-| Tier-2 fallback | Groq llama-3.1-8b-instant | Low latency, free tier resilience |
+| Application LLM (detect, query grounding) | Gemini | gemini-2.5-flash |
+| Cognee internal (entity extraction, synthesis) | OpenAI | gpt-4o-mini |
+| Tier-2 fallback | Groq | llama-3.1-8b-instant |
 
 Cognee's internal LLM and the application LLM use separate API
 keys to prevent shared rate limit pool contention.
@@ -140,8 +141,9 @@ keys to prevent shared rate limit pool contention.
 git clone https://github.com/SourabhaKK/ChronoScholar
 cd ChronoScholar
 cp .env.example .env
-# Edit .env: add GEMINI_API_KEY, GROQ_API_KEY, OPENAI_API_KEY
-python scripts/seed_corpus.py
+# Edit .env: add GEMINI_API_KEY, OPENAI_API_KEY, GROQ_API_KEY
+python scripts/seed_corpus.py        # builds knowledge graph (~2 min)
+python scripts/prewarm_cache.py      # pre-computes demo comparisons
 uvicorn app.main:create_app --factory --host 0.0.0.0 --port 8000
 # Open http://localhost:8000
 ```
@@ -216,6 +218,16 @@ Single-user posture eliminates this divergence.
 environment variables via LiteLLM. Model names require LiteLLM
 provider prefixes: `openai/gpt-4o-mini`, not `gpt-4o-mini`.
 
+**Integration notes for Cognee 1.2.2 (discovered during build):**
+- `set_llm_config()` removed — use env vars via LiteLLM
+- `get_nodes()`/`get_edges()` replaced by `get_graph_data()`
+- `ENABLE_BACKEND_ACCESS_CONTROL=false` required for single-user
+  deployments — default multi-tenant mode writes to UUID-scoped
+  file, reads from global file — different databases, empty results
+- `load_dotenv()` must execute before any `app.*` import —
+  Cognee resolves auth posture at module import time
+- LiteLLM provider prefix required: `openai/gpt-4o-mini` not `gpt-4o-mini`
+
 ---
 
 ## Development
@@ -234,6 +246,39 @@ Upstream API breaks encountered and resolved during development:
 - Cognee 1.2.2: set_llm_config() API changed to env-var-only
 - Cognee 1.2.2: get_nodes()/get_edges() replaced by get_graph_data()
 - Cognee 1.2.2: multi-tenant auth posture requires explicit opt-out
+
+---
+
+## AI Disclosure
+
+Built with significant AI assistance, declared per hackathon Rule 8.
+
+**Tools used:**
+- Claude (Anthropic) via Claude Code: primary implementation
+  assistant for code generation, architecture, tests, and debugging
+- Claude.ai: architecture planning, integration problem diagnosis,
+  and debugging strategy
+
+**What AI generated:**
+- Service implementations (CogneeService, ContradictionService,
+  LLMService, ArxivService)
+- FastAPI routers and Pydantic v2 schemas
+- Test suite (60 tests across 8 components)
+- Dockerfile, GitHub Actions CI/CD workflow
+- Frontend HTML/JS (index.html)
+- README and blog post drafts
+
+**What I own and wrote:**
+- All architectural decisions and component design
+- All Cognee 1.2.2 integration debugging and API compatibility
+  fixes (5 upstream breaks resolved — set_llm_config(), get_nodes(),
+  multi-tenant auth posture, Windows file lock contention,
+  Groq TPM shared between app LLM and Cognee internal)
+- Custom ontology design (5 node types, 6 typed edge types)
+- Benchmark annotation (10 ground truth contradiction pairs)
+- LLM prompt engineering (system prompt, contradiction classification)
+- Three-provider LLM architecture decision
+- TDD discipline: Red→Green→Refactor commit history throughout
 
 ---
 
