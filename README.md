@@ -46,7 +46,12 @@ Ingests arXiv paper abstracts via a custom ontology:
 - Node types: Paper, Claim, Method, Dataset, Author
 - Edge types: contradicts, supports, extends, invalidates,
   replicates, authored_by
-- Built using cognee.add() + cognee.cognify(graph_model=custom_model)
+- Built using cognee.add() + cognee.cognify() — Cognee's entity extraction
+  pipeline processes ingested abstracts and builds the knowledge
+  graph. The ontology (Paper, Claim, Method, Dataset, Author
+  node types; contradicts, supports, extends, invalidates,
+  replicates, authored_by edge types) is applied at the
+  contradiction detection and classification layer.
 - Stored in LanceDB (vectors) + LadybugDB (graph topology)
 
 **2. GRAPH_COMPLETION Search**
@@ -196,9 +201,11 @@ pytest tests/ -v
 
 ChronoScholar uses Cognee's V1 API throughout:
 
-**Ingestion:** `cognee.add(text)` followed by
-`cognee.cognify(graph_model=custom_model)` where `custom_model`
-is a Pydantic BaseModel defining the 5 node types and 6 edge types.
+**Ingestion:** `cognee.add(text)` ingests paper abstracts as text.
+`cognee.cognify()` builds the knowledge graph using Cognee's default
+entity extraction pipeline. The custom ontology is enforced at the
+contradiction detection layer — ContradictionService classifies
+paper pairs into the typed relationship schema.
 Documents are batched in groups of 2 to stay within Groq's 6K TPM
 free-tier limit during entity extraction.
 
@@ -279,6 +286,23 @@ Built with significant AI assistance, declared per hackathon Rule 8.
 - LLM prompt engineering (system prompt, contradiction classification)
 - Three-provider LLM architecture decision
 - TDD discipline: Red→Green→Refactor commit history throughout
+
+---
+
+## Future Upgrades
+
+| Feature | Description | Cognee API |
+|---|---|---|
+| Paper retraction | Remove a paper from the knowledge graph when withdrawn from literature | `cognee.forget()` |
+| Session memory | Persist researcher query history across sessions | `cognee.remember()` |
+| Belief refinement | Improve graph accuracy when new evidence updates prior claims | `cognee.improve()` |
+| Selective recall | Query specific belief subgraphs by topic or time window | `cognee.recall()` |
+
+These V2 memory lifecycle APIs are the intended next integration
+layer. The current implementation uses V1 APIs (add, cognify,
+search) which provide the core knowledge graph capability.
+V2 integration would enable ChronoScholar to learn from
+researcher interactions and adapt its belief state over time.
 
 ---
 
