@@ -217,16 +217,6 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
-# Planning documents — local only, never push
-CLAUDE.md
-ARCHITECTURE.md
-PRD.md
-API_CONTRACTS.md
-TESTING_STRATEGY.md
-IMPLEMENTATION_NOTES.md
-PROMPTS.md
-BENCHMARK.md
-SESSIONS.md
 
 # Blog / draft content — local only
 docs/blog_post.md

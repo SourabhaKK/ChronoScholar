@@ -1,0 +1,30 @@
+{
+  "description": "ChronoScholar seed corpus — AI memory systems domain",
+  "version": "1.0",
+  "created": "2026-06-26",
+  "papers": [
+    "2504.19413",
+    "2501.13956",
+    "2505.24478",
+    "2603.17244",
+    "2603.28533",
+    "2601.17915",
+    "2406.19764",
+    "2404.16130",
+    "2112.05785",
+    "2308.02457"
+  ],
+  "query_fallback": "agent memory knowledge graph temporal belief revision",
+  "notes": {
+    "2504.19413": "Mem0 — vector memory baseline, claims graph adds minimal value",
+    "2501.13956": "Zep/Graphiti — temporal KG, claims 18.5% improvement over vectors",
+    "2505.24478": "Cognee — graph-RAG, claims 92.5% vs 60% flat RAG",
+    "2603.17244": "Kumiho — formal belief revision for graph memory",
+    "2603.28533": "GraphWalker — agentic KG question answering",
+    "2601.17915": "Think Locally Explain Globally — graph-guided LLM investigation",
+    "2406.19764": "Belief Revision in LLMs — adaptability benchmark",
+    "2404.16130": "GraphRAG — Edge et al., graph RAG for summarisation",
+    "2112.05785": "TempoQR — temporal question reasoning over KGs",
+    "2308.02457": "Survey on Temporal Knowledge Graph Completion"
+  }
+}
