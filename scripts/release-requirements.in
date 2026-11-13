@@ -1,4 +1,5 @@
 # Dependencies of scripts/bump_version.py for the Release workflow (hashed, so CI installs exactly these).
 # Regenerate: uv pip compile --universal --generate-hashes --python-version 3.11 --exclude-newer <date 14 days ago> scripts/release-requirements.in -o scripts/release-requirements.txt
+httpx
 pydantic
 pyyaml
